@@ -219,6 +219,246 @@ const Home = () => {
         </div>
       </section>
 
+        {/* Pricing Section */}
+      <section className="py-20 bg-gradient-to-br from-slate-50 to-blue-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-extrabold text-slate-900 mb-4">
+              Choose Your Perfect Plan
+            </h2>
+            <p className="text-xl text-slate-600 max-w-3xl mx-auto">
+              Transparent pricing for every taxpayer. From simple salary returns to complex business filings.
+            </p>
+          </div>
+
+          <div className="grid lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            {/* Basic Plan */}
+            <div className="bg-white rounded-3xl shadow-xl border border-slate-200 p-8 relative hover:shadow-2xl transition-all duration-300 hover:-translate-y-2">
+              <div className="text-center mb-8">
+                <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                  <FileText className="w-8 h-8 text-blue-600" />
+                </div>
+                <h3 className="text-2xl font-bold text-slate-900 mb-2">Basic Filing</h3>
+                <p className="text-slate-600">Perfect for salaried individuals</p>
+              </div>
+              
+              <div className="text-center mb-8">
+                <div className="flex items-baseline justify-center">
+                  <span className="text-5xl font-extrabold text-slate-900">₹799</span>
+                  <span className="text-slate-500 ml-2">/year</span>
+                </div>
+                <p className="text-sm text-slate-500 mt-2">Less than 50 Lacs income</p>
+              </div>
+
+              <ul className="space-y-4 mb-8">
+                {[
+                  "ITR for salaried individuals",
+                  "Filing confirmation",
+                  "CA-assisted tax filing",
+                  "WhatsApp/Email support",
+                  "Tax due/refund status",
+                  "Single income source"
+                ].map((feature, idx) => (
+                  <li key={idx} className="flex items-center gap-3">
+                    <div className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center">
+                      <CheckCircle2 className="w-3 h-3 text-green-600" />
+                    </div>
+                    <span className="text-slate-700">{feature}</span>
+                  </li>
+                ))}
+              </ul>
+
+              <button className="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold hover:bg-blue-700 transition-colors">
+                Get Started
+              </button>
+            </div>
+
+            {/* Premium Plan - Most Popular */}
+            <div className="bg-white rounded-3xl shadow-2xl border-2 border-blue-500 p-8 relative hover:shadow-3xl transition-all duration-300 hover:-translate-y-2 scale-105">
+              <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                <span className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-2 rounded-full text-sm font-bold">
+                  Most Popular
+                </span>
+              </div>
+              
+              <div className="text-center mb-8">
+                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                  <Calculator className="w-8 h-8 text-white" />
+                </div>
+                <h3 className="text-2xl font-bold text-slate-900 mb-2">Premium Filing</h3>
+                <p className="text-slate-600">For multiple income sources</p>
+              </div>
+              
+              <div className="text-center mb-8">
+                <div className="flex items-baseline justify-center">
+                  <span className="text-5xl font-extrabold text-slate-900">₹1,299</span>
+                  <span className="text-slate-500 ml-2">/year</span>
+                </div>
+                <p className="text-sm text-slate-500 mt-2">More than 50 Lacs income</p>
+              </div>
+
+              <ul className="space-y-4 mb-8">
+                {[
+                  "All Basic plan features",
+                  "Multiple income sources",
+                  "House property income",
+                  "Capital gains support",
+                  "Priority CA assistance",
+                  "Advanced tax planning",
+                  "Dividend income support"
+                ].map((feature, idx) => (
+                  <li key={idx} className="flex items-center gap-3">
+                    <div className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center">
+                      <CheckCircle2 className="w-3 h-3 text-green-600" />
+                    </div>
+                    <span className="text-slate-700">{feature}</span>
+                  </li>
+                ))}
+              </ul>
+
+              <button className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-4 rounded-2xl font-bold hover:from-blue-700 hover:to-purple-700 transition-all">
+                Choose Premium
+              </button>
+            </div>
+
+            {/* Business Plan */}
+            <div className="bg-white rounded-3xl shadow-xl border border-slate-200 p-8 relative hover:shadow-2xl transition-all duration-300 hover:-translate-y-2">
+              <div className="text-center mb-8">
+                <div className="w-16 h-16 bg-green-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                  <MessageSquare className="w-8 h-8 text-green-600" />
+                </div>
+                <h3 className="text-2xl font-bold text-slate-900 mb-2">Business Pro</h3>
+                <p className="text-slate-600">For freelancers & businesses</p>
+              </div>
+              
+              <div className="text-center mb-8">
+                <div className="flex items-baseline justify-center">
+                  <span className="text-5xl font-extrabold text-slate-900">₹2,999</span>
+                  <span className="text-slate-500 ml-2">/year</span>
+                </div>
+                <p className="text-sm text-slate-500 mt-2">Presumptive/Business income</p>
+              </div>
+
+              <ul className="space-y-4 mb-8">
+                {[
+                  "All Premium features",
+                  "Business/Professional income",
+                  "Presumptive taxation",
+                  "ESOP & RSU support",
+                  "Dedicated CA manager",
+                  "Quarterly consultations",
+                  "GST integration support"
+                ].map((feature, idx) => (
+                  <li key={idx} className="flex items-center gap-3">
+                    <div className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center">
+                      <CheckCircle2 className="w-3 h-3 text-green-600" />
+                    </div>
+                    <span className="text-slate-700">{feature}</span>
+                  </li>
+                ))}
+              </ul>
+
+              <button className="w-full bg-green-600 text-white py-4 rounded-2xl font-bold hover:bg-green-700 transition-colors">
+                Go Business
+              </button>
+            </div>
+          </div>
+
+          <div className="text-center mt-12">
+            <p className="text-slate-600 mb-4">Need a custom solution?</p>
+            <button className="bg-slate-900 text-white px-8 py-3 rounded-xl font-semibold hover:bg-slate-800 transition-colors">
+              Contact Our Tax Experts
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials Section */}
+      <section className="py-20 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-extrabold text-slate-900 mb-4">
+              What Our Clients Say
+            </h2>
+            <p className="text-xl text-slate-600 max-w-3xl mx-auto">
+              Join thousands of satisfied taxpayers who trust FirstFiling for their tax needs
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {[
+              {
+                name: "Priya Sharma",
+                role: "Software Engineer",
+                company: "Tech Innovations Pvt Ltd",
+                rating: 5,
+                text: "FirstFiling made my tax filing incredibly simple! The CA support was exceptional, and I got my refund processed faster than ever. Their platform is user-friendly and the step-by-step guidance helped me understand every aspect of my tax filing.",
+                avatar: "PS"
+              },
+              {
+                name: "Rajesh Kumar",
+                role: "Business Owner",
+                company: "Kumar Enterprises",
+                rating: 5,
+                text: "As a business owner with multiple income sources, I was worried about filing my ITR correctly. FirstFiling's premium plan covered everything - from my business income to capital gains. The dedicated CA assigned to me was knowledgeable and always available for queries.",
+                avatar: "RK"
+              },
+              {
+                name: "Anita Patel",
+                role: "Freelance Designer",
+                company: "Creative Solutions",
+                rating: 5,
+                text: "The presumptive taxation support for my freelancing income was exactly what I needed. FirstFiling's team understood my unique situation and filed my ITR perfectly. The pricing is transparent and the service is top-notch. Highly recommended!",
+                avatar: "AP"
+              }
+            ].map((testimonial, idx) => (
+              <div key={idx} className="bg-slate-50 rounded-3xl p-8 relative hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+                <div className="flex items-center mb-6">
+                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-lg mr-4">
+                    {testimonial.avatar}
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-slate-900">{testimonial.name}</h4>
+                    <p className="text-sm text-slate-600">{testimonial.role}</p>
+                    <p className="text-xs text-slate-500">{testimonial.company}</p>
+                  </div>
+                </div>
+
+                <div className="flex mb-4">
+                  {[...Array(testimonial.rating)].map((_, i) => (
+                    <div key={i} className="w-5 h-5 text-yellow-400">
+                      ⭐
+                    </div>
+                  ))}
+                </div>
+
+                <p className="text-slate-700 leading-relaxed italic">
+                  "{testimonial.text}"
+                </p>
+
+                <div className="absolute -top-4 -right-4 w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                  <span className="text-white text-lg">"</span>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="text-center mt-12">
+            <div className="flex justify-center items-center gap-2 mb-6">
+              <div className="flex">
+                {[...Array(5)].map((_, i) => (
+                  <div key={i} className="w-6 h-6 text-yellow-400">⭐</div>
+                ))}
+              </div>
+              <span className="text-slate-600 font-semibold">4.9/5 from 10,000+ reviews</span>
+            </div>
+            <p className="text-slate-500">
+              Trusted by professionals, businesses, and individuals across India
+            </p>
+          </div>
+        </div>
+      </section>
+
       {/* FAQ Section */}
       <section className="py-20 bg-white">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -265,6 +505,8 @@ const Home = () => {
           </div>
         </div>
       </section>
+
+    
 
       {/* Footer */}
       <footer className="bg-slate-900 text-slate-400 py-16">
