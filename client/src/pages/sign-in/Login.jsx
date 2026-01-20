@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   FileText,
   Mail,
@@ -12,25 +12,53 @@ import {
   Chrome
 } from 'lucide-react';
 import Navbar from '../frontend/Navbar';
+import { useAuth } from '../../context/AuthContext';
 
 const Login = () => {
+  const navigate = useNavigate();
+  const { login } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
+
   const [formData, setFormData] = useState({
-    email: '',
-    password: ''
+    email: "",
+    password: "",
   });
+
+  const [error, setError] = useState("");
+
+  const DUMMY_USER = {
+    id: "ADMIN_001",
+    email: "admin@gmail.com",
+    password: "1234",
+  };
 
   const handleInputChange = (e) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     });
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Handle login logic here
-    console.log('Login attempt:', formData);
+    setError("");
+
+    if (
+      formData.email === DUMMY_USER.email &&
+      formData.password === DUMMY_USER.password
+    ) {
+      const userData = {
+        id: DUMMY_USER.id,
+        email: DUMMY_USER.email,
+        isLoggedIn: true,
+      };
+      
+      login(userData); // Use context login function
+      // alert("Login successful!");
+      // navigate('/'); 
+    } else {
+      setError("Invalid email or password");
+    }
   };
 
   return (
@@ -60,6 +88,13 @@ const Login = () => {
         {/* Login Form */}
         <div className="bg-white rounded-2xl shadow-xl border border-slate-200 p-8">
           <form className="space-y-6" onSubmit={handleSubmit}>
+            {/* Error Message */}
+            {error && (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl">
+                {error}
+              </div>
+            )}
+            
             {/* Email Field */}
             <div>
               <label htmlFor="email" className="block text-sm font-semibold text-slate-700 mb-2">

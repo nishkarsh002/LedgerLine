@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useState } from "react";
+import { Link } from "react-router-dom";
 import {
   FileText,
   ChevronDown,
@@ -9,21 +9,18 @@ import {
   Building2,
   FileCheck,
   Calculator,
-  TrendingUp,
-  Globe,
-  Home,
-  Coins,
-  Users,
   Building,
-  Briefcase,
   Receipt,
   CreditCard,
-  Shield
-} from 'lucide-react';
+  Shield,
+  Users,
+} from "lucide-react";
+import { useAuth } from "../../context/AuthContext";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState(null);
+  const { isLoggedIn, user, logout } = useAuth();
 
   const navigationItems = [
     {
@@ -31,59 +28,82 @@ const Navbar = () => {
       icon: <Calculator size={16} />,
       sections: [
         {
-          title: "Individual",
-          icon: <User size={14} />,
+          // title: "ITR Filing Services",
+          // icon: <User size={14} />,
           items: [
-            { name: "Salary (Basic) ITR", icon: <User size={12} />, path: "/services/salary-basic-itr" },
-            { name: "Salary (Premium)", icon: <User size={12} />, path: "/services/salary-premium" },
-            { name: "Capital Gain", icon: <TrendingUp size={12} />, path: "/services/capital-gain" },
-            { name: "Foreign/NRI Income", icon: <Globe size={12} />, path: "/services/nri-income" }
-          ]
+            {
+              name: "Individual",
+              icon: <User size={14} />,
+              path: "/services/individual",
+            },
+            {
+              name: "Business",
+              icon: <Building2 size={14} />,
+              path: "/services/business",
+            },
+          ],
         },
-        {
-          title: "Business",
-          icon: <Building2 size={14} />,
-          items: [
-            { name: "Business & Profession", icon: <Briefcase size={12} />, path: "/services/business-profession" },
-            { name: "F&O Trading", icon: <TrendingUp size={12} />, path: "/services/fo-trading" },
-            { name: "House Property", icon: <Home size={12} />, path: "/services/house-property" },
-            { name: "Crypto Trading", icon: <Coins size={12} />, path: "/services/crypto-trading" },
-            { name: "HUF Filing", icon: <Users size={12} />, path: "/services/huf-filing" }
-          ]
-        }
-      ]
+      ],
     },
     {
       title: "Registration",
       icon: <FileCheck size={16} />,
       sections: [
         {
-          title: "Business Registration",
-          icon: <Building size={14} />,
+          // title: "Business Registration",
+          // icon: <Building size={14} />,
           items: [
-            { name: "GST Registration", icon: <Receipt size={12} />, path: "/services/gst-registration" },
-            { name: "HUF Registration", icon: <Users size={12} />, path: "/services/huf-registration" },
-            { name: "Company Registration", icon: <Building size={12} />, path: "/services/company-registration" },
-            { name: "LLP Registration", icon: <Building2 size={12} />, path: "/services/llp-registration" }
-          ]
-        }
-      ]
+            {
+              name: "GST Registration",
+              icon: <Receipt size={14} />,
+              path: "/services/gst-registration",
+            },
+            {
+              name: "HUF Registration",
+              icon: <Users size={14} />,
+              path: "/services/huf-registration",
+            },
+            {
+              name: "Company Registration",
+              icon: <Building size={14} />,
+              path: "/services/company-registration",
+            },
+            {
+              name: "LLP Registration",
+              icon: <Building2 size={14} />,
+              path: "/services/llp-registration",
+            },
+          ],
+        },
+      ],
     },
     {
       title: "Other Filings",
       icon: <FileText size={16} />,
       sections: [
         {
-          title: "Compliance Filings",
-          icon: <Shield size={14} />,
+          // title: "Compliance Filings",
+          // icon: <Shield size={14} />,
           items: [
-            { name: "GST Filing", icon: <Receipt size={12} />, path: "/services/gst-filing" },
-            { name: "TDS Filing", icon: <CreditCard size={12} />, path: "/services/tds-filing" },
-            { name: "PF & ESIC", icon: <Shield size={12} />, path: "/services/pf-esic" }
-          ]
-        }
-      ]
-    }
+            {
+              name: "GST Filing",
+              icon: <Receipt size={14} />,
+              path: "/services/gst-filing",
+            },
+            {
+              name: "TDS Filing",
+              icon: <CreditCard size={14} />,
+              path: "/services/tds-filing",
+            },
+            {
+              name: "PF & ESIC",
+              icon: <Shield size={14} />,
+              path: "/services/pf-esic",
+            },
+          ],
+        },
+      ],
+    },
   ];
 
   const handleDropdownToggle = (index) => {
@@ -108,30 +128,34 @@ const Navbar = () => {
           <div className="hidden lg:flex items-center space-x-2">
             {navigationItems.map((item, index) => (
               <div key={index} className="relative group">
-                <button 
+                <button
                   className="flex items-center gap-2 px-4 py-2 font-medium text-slate-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200"
                   onMouseEnter={() => setActiveDropdown(index)}
                   onMouseLeave={() => setActiveDropdown(null)}
                 >
                   {item.icon}
                   {item.title}
-                  <ChevronDown size={16} className="transition-transform group-hover:rotate-180" />
+                  <ChevronDown
+                    size={16}
+                    className="transition-transform group-hover:rotate-180"
+                  />
                 </button>
-                
+
                 {/* Mega Menu Dropdown */}
-                <div 
-                  className={`absolute top-full left-0 mt-2 w-96 bg-white shadow-2xl rounded-2xl border border-slate-200 transition-all duration-300 max-h-96 overflow-y-auto ${
-                    activeDropdown === index ? 'opacity-100 visible translate-y-0' : 'opacity-0 invisible translate-y-2'
+                <div
+                  className={`absolute top-full left-0 mt-1 w-max bg-white shadow-2xl rounded-2xl border border-slate-200 transition-all duration-300 max-h-96 overflow-y-auto ${
+                    activeDropdown === index
+                      ? "opacity-100 visible translate-y-0"
+                      : "opacity-0 invisible translate-y-2"
                   }`}
                   onMouseEnter={() => setActiveDropdown(index)}
                   onMouseLeave={() => setActiveDropdown(null)}
                 >
-                  <div className="p-6">
-                    <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
+                  <div className="p-5">
+                    {/* <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
                       {item.icon}
                       {item.title}
-                    </h3>
-                    
+                    </h3> */}
                     <div className="space-y-6">
                       {item.sections.map((section, sectionIndex) => (
                         <div key={sectionIndex}>
@@ -149,7 +173,9 @@ const Navbar = () => {
                                 <div className="w-8 h-8 bg-slate-100 group-hover:bg-blue-100 rounded-lg flex items-center justify-center transition-colors">
                                   {subItem.icon}
                                 </div>
-                                <span className="text-sm font-medium">{subItem.name}</span>
+                                <span className="text-sm font-medium">
+                                  {subItem.name}
+                                </span>
                               </Link>
                             ))}
                           </div>
@@ -170,23 +196,41 @@ const Navbar = () => {
             </Link> */}
 
             {/* Auth Buttons */}
-            <Link
-              to="/login"
-              className="text-blue-600 font-semibold px-4 py-2 hover:bg-blue-50 rounded-lg transition-all duration-200"
-            >
-              Login
-            </Link>
-            <Link
-              to="/sign_up"
-              className="bg-blue-600 text-white px-6 py-2.5 rounded-full font-semibold hover:bg-blue-700 transition-all duration-200 shadow-lg hover:shadow-xl"
-            >
-              Sign Up
-            </Link>
+            {!isLoggedIn ? (
+              <>
+                <Link
+                  to="/login"
+                  className="text-blue-600 font-semibold px-4 py-2 hover:bg-blue-50 rounded-lg transition-all duration-200"
+                >
+                  Login
+                </Link>
+
+                <Link
+                  to="/sign_up"
+                  className="bg-blue-600 text-white px-6 py-2.5 rounded-full font-semibold hover:bg-blue-700 transition-all duration-200 shadow-lg hover:shadow-xl"
+                >
+                  Sign Up
+                </Link>
+              </>
+            ) : (
+              <>
+                <span className="text-slate-700 font-semibold">
+                  Hi, {user?.email?.split('@')[0] || 'User'} 👋
+                </span>
+
+                <button
+                  onClick={logout}
+                  className="text-red-600 font-semibold px-4 py-2 hover:bg-red-50 rounded-lg transition-all duration-200"
+                >
+                  Logout
+                </button>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
           <div className="lg:hidden">
-            <button 
+            <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               className="p-2 rounded-lg text-slate-600 hover:text-blue-600 hover:bg-blue-50 transition-colors"
             >
@@ -196,7 +240,13 @@ const Navbar = () => {
         </div>
 
         {/* Mobile Navigation */}
-        <div className={`lg:hidden transition-all duration-300 ${isMenuOpen ? 'max-h-screen opacity-100' : 'max-h-0 opacity-0 overflow-hidden'}`}>
+        <div
+          className={`lg:hidden transition-all duration-300 ${
+            isMenuOpen
+              ? "max-h-screen opacity-100"
+              : "max-h-0 opacity-0 overflow-hidden"
+          }`}
+        >
           <div className="py-4 space-y-2">
             {navigationItems.map((item, index) => (
               <div key={index} className="border-b border-slate-100 pb-4 mb-4">
@@ -208,9 +258,14 @@ const Navbar = () => {
                     {item.icon}
                     <span className="font-medium">{item.title}</span>
                   </div>
-                  <ChevronDown size={16} className={`transition-transform ${activeDropdown === index ? 'rotate-180' : ''}`} />
+                  <ChevronDown
+                    size={16}
+                    className={`transition-transform ${
+                      activeDropdown === index ? "rotate-180" : ""
+                    }`}
+                  />
                 </button>
-                
+
                 {activeDropdown === index && (
                   <div className="mt-2 ml-4 space-y-3">
                     {item.sections.map((section, sectionIndex) => (
@@ -237,7 +292,7 @@ const Navbar = () => {
                 )}
               </div>
             ))}
-            
+
             <div className="space-y-2 pt-4">
               <Link
                 to="#pricing"
