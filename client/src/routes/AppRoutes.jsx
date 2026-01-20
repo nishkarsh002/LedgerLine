@@ -5,8 +5,8 @@ import Sign_up from '../pages/sign-in/Sign_up';
 import UserForm from '../pages/from/UserFrom';
 
 // ITR Category Pages (keep existing)
-import IndividualITR from '../pages/services/Itr/IndividualITR';
-import BusinessITR from '../pages/services/Itr/BusinessITR';
+import IndividualITR from '../pages/services/itr/IndividualITR';
+import BusinessITR from '../pages/services/itr/BusinessITR';
 
 // Dynamic Service Detail Template
 import ServiceDetail from '../pages/services/ServiceDetail';
