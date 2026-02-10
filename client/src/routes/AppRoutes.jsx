@@ -3,6 +3,7 @@ import Home from '../pages/frontend/Home';
 import Login from '../pages/sign-in/Login';
 import Sign_up from '../pages/sign-in/Sign_up';
 import UserForm from '../pages/from/UserFrom';
+import UserDashboard from '../pages/dashboard/UserDashboard';
 
 // ITR Category Pages (keep existing)
 import IndividualITR from '../pages/services/itr/IndividualITR';
@@ -29,6 +30,9 @@ export default function AppRoutes() {
 
       {/* {User Form} */}
       <Route path="/services/userform" element={<UserForm />} />
+
+      {/* User Dashboard */}
+      <Route path="/dashboard" element={<UserDashboard />} />
 
       {/* Payment Routes */}
       <Route path="/payment" element={<PaymentGateway />} />

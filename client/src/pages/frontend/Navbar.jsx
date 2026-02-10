@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   FileText,
   ChevronDown,
@@ -21,6 +21,12 @@ const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState(null);
   const { isLoggedIn, user, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+  };
 
   const navigationItems = [
     {
@@ -214,12 +220,16 @@ const Navbar = () => {
               </>
             ) : (
               <>
-                <span className="text-slate-700 font-semibold">
-                  Hi, {user?.email?.split('@')[0] || 'User'} 👋
-                </span>
+                <Link
+                  to="/dashboard"
+                  className="flex items-center gap-2 text-slate-700 font-semibold px-4 py-2 hover:bg-blue-50 rounded-lg transition-all duration-200"
+                >
+                  <User size={18} />
+                  Dashboard
+                </Link>
 
                 <button
-                  onClick={logout}
+                  onClick={handleLogout}
                   className="text-red-600 font-semibold px-4 py-2 hover:bg-red-50 rounded-lg transition-all duration-200"
                 >
                   Logout
@@ -294,24 +304,38 @@ const Navbar = () => {
             ))}
 
             <div className="space-y-2 pt-4">
-              <Link
-                to="#pricing"
-                className="block p-3 text-slate-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors font-medium"
-              >
-                Plans
-              </Link>
-              <Link
-                to="/login"
-                className="block p-3 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors font-semibold"
-              >
-                Login
-              </Link>
-              <Link
-                to="/sign_up"
-                className="block p-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors text-center"
-              >
-                Sign Up
-              </Link>
+              {!isLoggedIn ? (
+                <>
+                  <Link
+                    to="/login"
+                    className="block p-3 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors font-semibold"
+                  >
+                    Login
+                  </Link>
+                  <Link
+                    to="/sign_up"
+                    className="block p-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors text-center"
+                  >
+                    Sign Up
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <Link
+                    to="/dashboard"
+                    className="flex items-center gap-2 p-3 text-slate-700 hover:bg-blue-50 rounded-lg transition-colors font-semibold"
+                  >
+                    <User size={18} />
+                    Dashboard
+                  </Link>
+                  <button
+                    onClick={handleLogout}
+                    className="w-full text-left p-3 text-red-600 hover:bg-red-50 rounded-lg transition-colors font-semibold"
+                  >
+                    Logout
+                  </button>
+                </>
+              )}
             </div>
           </div>
         </div>
