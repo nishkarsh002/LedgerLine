@@ -38,8 +38,9 @@ const BusinessITR = () => {
         <div className="max-w-[1024px] mx-auto px-4 sm:px-6 lg:px-8">
           {/* Header */}
           <div className="text-center mb-8">
-            <div className="w-12 h-12 bg-green-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-              <Briefcase className="w-6 h-6 text-green-600" />
+            <div className="w-14 h-14 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto mb-4 overflow-hidden relative group transition-all duration-300">
+              <div className="absolute inset-0 bg-blue-200 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <Briefcase className="w-6 h-6 text-blue-600 relative z-10" />
             </div>
             <h1 className="text-3xl font-extrabold text-slate-900 mb-2">
               Business ITR Filing Services
@@ -69,8 +70,8 @@ const BusinessITR = () => {
                   <ul className="space-y-3 mb-8 flex-1">
                     {service.features.map((feature, idx) => (
                       <li key={idx} className="flex items-center gap-3">
-                        <div className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center">
-                          <div className="w-2 h-2 bg-green-600 rounded-full"></div>
+                        <div className="w-5 h-5 bg-blue-50 rounded-full flex items-center justify-center">
+                          <div className="w-1.5 h-1.5 bg-blue-600 rounded-full"></div>
                         </div>
                         <span className="text-slate-700 text-sm">{feature}</span>
                       </li>
@@ -80,26 +81,26 @@ const BusinessITR = () => {
                   <div className="mt-auto">
                     {isPurchased ? (
                       <div className="space-y-3">
-                        <div className="bg-green-100 text-green-700 py-3 rounded-2xl font-bold text-center flex items-center justify-center gap-2 text-sm">
+                        <div className="bg-green-50 text-green-700 py-3 rounded-2xl font-bold text-center flex items-center justify-center gap-2 text-sm border border-green-100">
                           <CheckCircle size={18} />
-                          Current Plan
+                          Active Plan
                         </div>
-                        <Link
-                          to={`/services/${service.id}`}
-                          className="w-full bg-gradient-to-r from-green-600 to-blue-600 text-white py-3 px-6 rounded-2xl font-bold hover:from-green-700 hover:to-blue-700 transition-all flex items-center justify-center gap-2 group text-sm"
-                        >
-                          View Plan
-                          <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                        </Link>
+                          <Link
+                            to={`/services/${service.id}`}
+                            className="w-full bg-[#2563eb] text-white py-3.5 px-6 rounded-2xl font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-900/10 flex items-center justify-center gap-2 group text-sm"
+                          >
+                            Explore Plan Details
+                            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                          </Link>
                       </div>
                     ) : (
-                      <Link
-                        to={`/services/${service.id}`}
-                        className="w-full bg-gradient-to-r from-green-600 to-blue-600 text-white py-3 px-6 rounded-2xl font-bold hover:from-green-700 hover:to-blue-700 transition-all flex items-center justify-center gap-2 group text-sm"
-                      >
-                        View Plan
-                        <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                      </Link>
+                        <Link
+                          to={`/services/${service.id}`}
+                          className="w-full bg-[#2563eb] text-white py-3.5 px-6 rounded-2xl font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-900/10 flex items-center justify-center gap-2 group text-sm"
+                        >
+                          Explore Plan Details
+                          <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                        </Link>
                     )}
                   </div>
 
@@ -118,7 +119,7 @@ const BusinessITR = () => {
               </p>
               <a
                 href="tel:8126456433"
-                className="inline-block bg-slate-900 text-white px-8 py-4 rounded-2xl font-bold hover:bg-slate-800 transition-colors"
+                className="inline-block bg-[#2563eb] text-white px-10 py-4 rounded-2xl font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-900/10"
               >
                 Get Expert Consultation
               </a>

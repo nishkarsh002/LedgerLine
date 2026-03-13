@@ -79,8 +79,8 @@ const IndividualITR = () => {
                   <ul className="space-y-3 mb-8 flex-1">
                     {service.features.map((feature, idx) => (
                       <li key={idx} className="flex items-center gap-3">
-                        <div className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center">
-                          <div className="w-2 h-2 bg-green-600 rounded-full"></div>
+                        <div className="w-5 h-5 bg-blue-50 rounded-full flex items-center justify-center">
+                          <div className="w-1.5 h-1.5 bg-blue-600 rounded-full"></div>
                         </div>
                         <span className="text-slate-700">{feature}</span>
                       </li>
@@ -90,24 +90,24 @@ const IndividualITR = () => {
                   <div className="mt-auto">
                     {isPurchased ? (
                       <div className="space-y-3">
-                        <div className="bg-green-100 text-green-700 py-3 rounded-2xl font-bold text-center flex items-center justify-center gap-2">
-                          <CheckCircle size={20} />
-                          Current Plan
+                        <div className="bg-green-50 text-green-700 py-3.5 rounded-2xl font-bold text-center flex items-center justify-center gap-2 text-sm border border-green-100">
+                          <CheckCircle size={18} />
+                          Active Plan
                         </div>
                         <Link
                           to={`/services/${service.id}`}
-                          className="w-full bg-blue-600 text-white py-4 px-6 rounded-2xl font-bold hover:bg-blue-700 transition-all flex items-center justify-center gap-2 group"
+                          className="w-full bg-[#2563eb] text-white py-3.5 px-6 rounded-2xl font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-900/10 flex items-center justify-center gap-2 group text-sm"
                         >
-                          View Plan
+                          Explore Plan Details
                           <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                         </Link>
                       </div>
                     ) : (
                       <Link
                         to={`/services/${service.id}`}
-                        className="w-full bg-slate-900 text-white py-4 px-6 rounded-2xl font-bold hover:bg-slate-800 transition-all flex items-center justify-center gap-2 group"
+                        className="w-full bg-[#2563eb] text-white py-3.5 px-6 rounded-2xl font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-900/10 flex items-center justify-center gap-2 group text-sm"
                       >
-                        View Plan
+                        Explore Plan Details
                         <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                       </Link>
                     )}
@@ -129,7 +129,7 @@ const IndividualITR = () => {
               </p>
               <a
                 href="tel:8126456433"
-                className="inline-block bg-slate-900 text-white px-8 py-4 rounded-2xl font-bold hover:bg-slate-800 transition-colors"
+                className="inline-block bg-[#2563eb] text-white px-10 py-4 rounded-2xl font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-900/10"
               >
                 Get Expert Consultation
               </a>

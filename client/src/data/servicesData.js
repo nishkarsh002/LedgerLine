@@ -52,8 +52,8 @@ export const individualServices = [
     description: "Comprehensive ITR filing for professionals with multiple income sources",
     price: "₹1,299",
     icon: User,
-    bgColor: "bg-purple-100",
-    iconColor: "text-purple-600",
+    bgColor: "bg-blue-50",
+    iconColor: "text-blue-600",
     features: [
       "ITR-2 form", 
       "Multiple income sources", 
@@ -83,8 +83,8 @@ export const individualServices = [
     description: "Specialized filing for stock market and investment gains",
     price: "₹1,999",
     icon: TrendingUp,
-    bgColor: "bg-green-100",
-    iconColor: "text-green-600",
+    bgColor: "bg-blue-50",
+    iconColor: "text-blue-600",
     features: [
       "LTCG & STCG", 
       "Stock market gains", 
@@ -114,8 +114,8 @@ export const individualServices = [
     description: "ITR filing for NRIs and foreign income sources",
     price: "₹2,499",
     icon: Globe,
-    bgColor: "bg-indigo-100",
-    iconColor: "text-indigo-600",
+    bgColor: "bg-blue-50",
+    iconColor: "text-blue-600",
     features: [
       "NRI tax filing", 
       "Foreign income", 
@@ -149,8 +149,8 @@ export const businessServices = [
     description: "Comprehensive ITR filing for business owners and professionals",
     price: "₹2,999",
     icon: Briefcase,
-    bgColor: "bg-green-100",
-    iconColor: "text-green-600",
+    bgColor: "bg-blue-50",
+    iconColor: "text-blue-600",
     features: [
       "ITR-3 or ITR-4 form", 
       "Business income", 
@@ -180,8 +180,8 @@ export const businessServices = [
     description: "Specialized filing for futures and options trading income",
     price: "₹3,499",
     icon: TrendingUp,
-    bgColor: "bg-red-100",
-    iconColor: "text-red-600",
+    bgColor: "bg-blue-50",
+    iconColor: "text-blue-600",
     features: [
       "F&O trading income", 
       "Speculative income", 
@@ -211,8 +211,8 @@ export const businessServices = [
     description: "ITR filing for rental income and property investments",
     price: "₹1,799",
     icon: Home,
-    bgColor: "bg-yellow-100",
-    iconColor: "text-yellow-600",
+    bgColor: "bg-blue-50",
+    iconColor: "text-blue-600",
     features: [
       "Rental income", 
       "Property tax deductions", 
@@ -242,8 +242,8 @@ export const businessServices = [
     description: "ITR filing for cryptocurrency trading and investments",
     price: "₹2,799",
     icon: Coins,
-    bgColor: "bg-purple-100",
-    iconColor: "text-purple-600",
+    bgColor: "bg-blue-50",
+    iconColor: "text-blue-600",
     features: [
       "Crypto trading income", 
       "Virtual digital assets", 
@@ -273,8 +273,8 @@ export const businessServices = [
     description: "Hindu Undivided Family tax return filing",
     price: "₹2,199",
     icon: Users,
-    bgColor: "bg-indigo-100",
-    iconColor: "text-indigo-600",
+    bgColor: "bg-blue-50",
+    iconColor: "text-blue-600",
     features: [
       "HUF income", 
       "Family business", 
@@ -323,8 +323,8 @@ export const registrationServices = [
     description: "Hindu Undivided Family registration services",
     price: "₹999",
     icon: Users,
-    bgColor: "bg-green-100",
-    iconColor: "text-green-600",
+    bgColor: "bg-blue-50",
+    iconColor: "text-blue-600",
     features: [
       "HUF deed preparation", 
       "PAN application", 
@@ -338,8 +338,8 @@ export const registrationServices = [
     description: "Private Limited Company incorporation",
     price: "₹4,999",
     icon: Building,
-    bgColor: "bg-purple-100",
-    iconColor: "text-purple-600",
+    bgColor: "bg-blue-50",
+    iconColor: "text-blue-600",
     features: [
       "ROC filing", 
       "Certificate of incorporation", 
@@ -353,8 +353,8 @@ export const registrationServices = [
     description: "Limited Liability Partnership registration",
     price: "₹3,999",
     icon: Building2,
-    bgColor: "bg-yellow-100",
-    iconColor: "text-yellow-600",
+    bgColor: "bg-blue-50",
+    iconColor: "text-blue-600",
     features: [
       "LLP agreement", 
       "ROC registration", 
@@ -387,8 +387,8 @@ export const otherServices = [
     description: "TDS return filing and compliance",
     price: "₹1,299",
     icon: CreditCard,
-    bgColor: "bg-green-100",
-    iconColor: "text-green-600",
+    bgColor: "bg-blue-50",
+    iconColor: "text-blue-600",
     features: [
       "TDS return filing", 
       "Certificate generation", 
@@ -402,8 +402,8 @@ export const otherServices = [
     description: "Provident Fund and ESIC compliance",
     price: "₹1,599",
     icon: Shield,
-    bgColor: "bg-purple-100",
-    iconColor: "text-purple-600",
+    bgColor: "bg-blue-50",
+    iconColor: "text-blue-600",
     features: [
       "PF registration", 
       "ESIC registration", 
@@ -427,24 +427,24 @@ export const serviceCategories = {
     title: "Business ITR Filing Services", 
     description: "Professional tax filing services for businesses, traders, and specialized income sources",
     icon: Briefcase,
-    bgColor: "bg-green-100",
-    iconColor: "text-green-600",
+    bgColor: "bg-blue-50",
+    iconColor: "text-blue-600",
     services: businessServices
   },
   registration: {
     title: "Registration Services",
     description: "Complete business registration and compliance setup services",
     icon: Building,
-    bgColor: "bg-purple-100", 
-    iconColor: "text-purple-600",
+    bgColor: "bg-blue-50",
+    iconColor: "text-blue-600",
     services: registrationServices
   },
   other: {
     title: "Other Filing Services",
     description: "Additional compliance and filing services for businesses",
     icon: Receipt,
-    bgColor: "bg-yellow-100",
-    iconColor: "text-yellow-600", 
+    bgColor: "bg-blue-50",
+    iconColor: "text-blue-600", 
     services: otherServices
   }
 };

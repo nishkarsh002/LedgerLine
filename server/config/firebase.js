@@ -7,17 +7,18 @@ const serviceAccount = require('./serviceAccountKey.json');
 const initializeFirebase = () => {
     try {
         if (admin.apps.length === 0) {
-            // Standard PKCS#8 formatting for service account keys
-            const privateKey = serviceAccount.private_key 
-                ? serviceAccount.private_key.replace(/\\n/g, '\n') 
-                : undefined;
+            // Robustly prepare the service account object
+            const sa = { ...serviceAccount };
+            if (sa.private_key) {
+                // Handle both literal \n string and actual newlines, and remove carriage returns
+                sa.private_key = sa.private_key
+                    .replace(/\\n/g, '\n')
+                    .replace(/\r/g, '')
+                    .trim() + '\n';
+            }
 
             admin.initializeApp({
-                credential: admin.credential.cert({
-                    projectId: serviceAccount.project_id,
-                    clientEmail: serviceAccount.client_email,
-                    privateKey: privateKey
-                }),
+                credential: admin.credential.cert(sa),
                 storageBucket: "itr-project-9be2b.firebasestorage.app"
             });
             console.log('Firebase Admin Initialized Successfully');

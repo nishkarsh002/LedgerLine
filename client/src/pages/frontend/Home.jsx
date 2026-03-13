@@ -177,21 +177,21 @@ const Home = () => {
               <button
                 onClick={handleSuggest}
                 disabled={selectedIncome.length === 0}
-                className="w-full bg-slate-900 text-white py-5 rounded-2xl font-bold text-xl hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-xl hover:shadow-2xl transform hover:-translate-y-1 mb-2"
+                className="w-full bg-[#2563eb] text-white py-5 rounded-2xl font-bold text-xl hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-xl hover:shadow-2xl transform hover:-translate-y-1 mb-2"
               >
                 Show My Correct ITR Form
               </button>
 
               {suggestedITR && (
-                <div className="mt-10 p-8 bg-green-50 border border-green-200 rounded-3xl flex items-center gap-6 animate-in fade-in slide-in-from-top-4 duration-500">
-                  <div className="bg-green-500 p-3 rounded-2xl text-white shadow-lg shadow-green-200">
+                <div className="mt-10 p-8 bg-blue-50 border border-blue-200 rounded-3xl flex items-center gap-6 animate-in fade-in slide-in-from-top-4 duration-500">
+                  <div className="bg-blue-500 p-3 rounded-2xl text-white shadow-lg shadow-blue-200">
                     <CheckCircle2 size={32} />
                   </div>
                   <div>
-                    <p className="text-green-900 font-extrabold text-2xl mb-1">
+                    <p className="text-blue-900 font-extrabold text-2xl mb-1">
                       You should file {suggestedITR}
                     </p>
-                    <p className="text-green-700 text-lg">
+                    <p className="text-blue-700 text-lg">
                       Our plans start from just <span className="font-bold">₹499</span> for this category.
                     </p>
                   </div>
@@ -234,7 +234,8 @@ const Home = () => {
               </div>
 
               <ul className="space-y-5 mb-10 flex-grow">
-                {[
+                 {/* Change checkmarks in basic plan */}
+                 {[
                   "ITR for salaried individuals",
                   "Filing confirmation",
                   "CA-assisted tax filing",
@@ -243,15 +244,15 @@ const Home = () => {
                   "Single income source"
                 ].map((feature, idx) => (
                   <li key={idx} className="flex items-center gap-4">
-                    <div className="w-6 h-6 bg-green-50 rounded-full flex items-center justify-center flex-shrink-0">
-                      <CheckCircle2 className="w-4 h-4 text-green-600" />
+                    <div className="w-6 h-6 bg-blue-50 rounded-full flex items-center justify-center flex-shrink-0">
+                      <CheckCircle2 className="w-4 h-4 text-blue-600" />
                     </div>
                     <span className="text-slate-600 font-medium">{feature}</span>
                   </li>
                 ))}
               </ul>
-              <Link to="/services/salary-basic-itr">
-                <button className="w-full bg-slate-900 text-white py-4 rounded-2xl font-bold hover:bg-slate-800 hover:text-white transition-all duration-300">
+               <Link to="/services/salary-basic-itr">
+                <button className="w-full bg-[#2563eb] text-white py-4 rounded-2xl font-bold hover:bg-blue-700 transition-all duration-300 shadow-lg shadow-blue-900/10">
                   Get Started
                 </button>
               </Link>
@@ -309,8 +310,8 @@ const Home = () => {
             {/* Business Plan */}
             <div className="bg-white rounded-[2.5rem] shadow-xl border border-slate-100 p-10 flex flex-col hover:shadow-2xl transition-all duration-500 hover:-translate-y-2">
               <div className="mb-8">
-                <div className="w-16 h-16 bg-green-50 rounded-2xl flex items-center justify-center mb-6">
-                  <MessageSquare className="w-8 h-8 text-green-600" />
+                <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mb-6">
+                  <MessageSquare className="w-8 h-8 text-blue-600" />
                 </div>
                 <h3 className="text-2xl font-bold text-slate-900 mb-2">Business Pro</h3>
                 <p className="text-slate-500">For freelancers & businesses</p>
@@ -335,15 +336,15 @@ const Home = () => {
                   "GST integration support"
                 ].map((feature, idx) => (
                   <li key={idx} className="flex items-center gap-4">
-                    <div className="w-6 h-6 bg-green-50 rounded-full flex items-center justify-center flex-shrink-0">
-                      <CheckCircle2 className="w-4 h-4 text-green-600" />
+                    <div className="w-6 h-6 bg-blue-50 rounded-full flex items-center justify-center flex-shrink-0">
+                      <CheckCircle2 className="w-4 h-4 text-blue-600" />
                     </div>
                     <span className="text-slate-600 font-medium">{feature}</span>
                   </li>
                 ))}
               </ul>
-              <Link to="/services/business">
-                <button className="w-full bg-slate-900 text-white py-4 rounded-2xl font-bold hover:bg-slate-800 transition-all">
+               <Link to="/services/business">
+                <button className="w-full bg-[#2563eb] text-white py-4 rounded-2xl font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-900/10">
                   Go Business
                 </button>
               </Link>

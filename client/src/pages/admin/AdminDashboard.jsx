@@ -41,14 +41,15 @@ const AdminDashboard = () => {
 
     // Data States
     const [users, setUsers] = useState([]);
-    const [orders, setOrders] = useState([]);
+    const [filings, setFilings] = useState([]); // This represents TAX FILINGS (ITR)
+    const [orders, setOrders] = useState([]);   // This represents PURCHASES/PAYMENTS
     const [adminRequests, setAdminRequests] = useState([]);
     const [loading, setLoading] = useState(false);
     const [stats, setStats] = useState([
         { title: 'Total Orders', value: '0', change: '+0%', icon: ShoppingBag, color: 'blue' },
         { title: 'Total Revenue', value: '₹0', change: '+0%', icon: DollarSign, color: 'green' },
         { title: 'Active Users', value: '0', change: '+0%', icon: Users, color: 'purple' },
-        { title: 'Pending Orders', value: '0', change: '0%', icon: Clock, color: 'yellow' }
+        { title: 'Pending Filings', value: '0', change: '0%', icon: Clock, color: 'yellow' }
     ]);
 
     const handleLogout = () => {
@@ -61,6 +62,7 @@ const AdminDashboard = () => {
         { id: 'users', label: 'Users', icon: Users },
         { id: 'requests', label: 'Requests', icon: UserPlus },
         { id: 'orders', label: 'Orders', icon: ShoppingBag },
+        { id: 'filings', label: 'Filings', icon: FileText },
         { id: 'documents', label: 'Documents', icon: FileText },
         { id: 'settings', label: 'Settings', icon: Settings },
     ];
@@ -69,35 +71,54 @@ const AdminDashboard = () => {
     const fetchData = async () => {
         setLoading(true);
         try {
-            const [usersRes, ordersRes, requestsRes] = await Promise.all([
+            const [usersRes, paymentsRes, itrsRes, requestsRes] = await Promise.allSettled([
                 api.get('/auth/users'),
+                api.get('/payments/all'),
                 api.get('/itr/all'),
                 api.get('/auth/admin-requests')
             ]);
 
-            const usersData = usersRes.data.data;
-            const ordersData = ordersRes.data.data;
-            const requestsData = requestsRes.data.data;
+            const usersData = usersRes.status === 'fulfilled' ? usersRes.value.data.data : [];
+            const paymentsData = paymentsRes.status === 'fulfilled' ? paymentsRes.value.data.data : [];
+            const itrsData = itrsRes.status === 'fulfilled' ? itrsRes.value.data.data : [];
+            const requestsData = requestsRes.status === 'fulfilled' ? requestsRes.value.data.data : [];
 
             setUsers(usersData);
             setAdminRequests(requestsData);
 
-            // Map Orders
-            const mappedOrders = ordersData.map(itr => ({
+            // 1. Map Payments to Orders
+            const mappedOrders = paymentsData.map(purchase => ({
+                id: purchase._id,
+                transactionId: purchase.paymentId,
+                clientName: purchase.userId?.name || 'Unknown',
+                clientEmail: purchase.userId?.email || 'Unknown',
+                clientId: purchase.userId?._id,
+                service: purchase.planId?.name || 'Tax Plan',
+                amount: `₹${purchase.planId?.price || 0}`,
+                date: new Date(purchase.createdAt).toLocaleDateString(),
+                status: purchase.paymentStatus,
+                itrStatus: purchase.itrStatus || 'Pending Filing',
+                originalData: purchase
+            }));
+            setOrders(mappedOrders);
+
+            // 2. Map ITRs to Filings
+            const mappedFilings = itrsData.map(itr => ({
                 id: itr._id,
                 clientName: itr.userId?.name || 'Unknown',
                 clientEmail: itr.userId?.email || 'Unknown',
                 clientId: itr.userId?._id,
                 service: itr.purchaseId?.planId?.name || 'ITR Filing',
-                date: new Date(itr.submittedAt).toLocaleDateString(),
+                date: new Date(itr.submittedAt || itr.createdAt).toLocaleDateString(),
                 status: itr.status,
                 amount: itr.purchaseId?.planId?.price ? `₹${itr.purchaseId.planId.price}` : '-',
                 assignedCA: itr.assignedCA?.name || 'Unassigned',
+                itrId: itr._id,
                 originalData: itr
             }));
-            setOrders(mappedOrders);
+            setFilings(mappedFilings);
 
-            calculateStats(usersData, mappedOrders);
+            calculateStats(usersData, mappedFilings, paymentsData);
 
         } catch (error) {
             console.error('Error fetching admin data:', error);
@@ -106,18 +127,19 @@ const AdminDashboard = () => {
         }
     };
 
-    const calculateStats = (usersList, ordersList) => {
-        const totalRevenue = ordersList.reduce((acc, order) => {
-            const price = parseInt(order.amount.replace(/[^0-9]/g, '')) || 0;
+    const calculateStats = (usersList, filingsList, paymentsList) => {
+        const totalRevenue = paymentsList.reduce((acc, payment) => {
+            const price = payment.planId?.price || 0;
             return acc + price;
         }, 0);
-
-        const pendingCount = ordersList.filter(o => o.status === 'Pending' || o.status === 'pending').length;
+        const pendingCount = filingsList.filter(f => 
+            ['pending', 'in-progress', 'ca reviewing'].includes(f.status?.toLowerCase())
+        ).length;
 
         setStats([
             {
                 title: 'Total Orders',
-                value: ordersList.length.toString(),
+                value: paymentsList.length.toString(),
                 change: '+12%',
                 icon: ShoppingBag,
                 color: 'blue'
@@ -137,7 +159,7 @@ const AdminDashboard = () => {
                 color: 'purple'
             },
             {
-                title: 'Pending Reviews',
+                title: 'Pending Filings',
                 value: pendingCount.toString(),
                 change: '-5%',
                 icon: Clock,
@@ -158,8 +180,8 @@ const AdminDashboard = () => {
             config = { bg: 'bg-emerald-500/10', text: 'text-emerald-500', label: status || 'Active' };
         } else if (statusLower === 'in-progress' || statusLower === 'processing' || statusLower === 'ca reviewing') {
             config = { bg: 'bg-blue-500/10', text: 'text-blue-500', label: status || 'In Progress' };
-        } else if (statusLower === 'pending') {
-            config = { bg: 'bg-amber-500/10', text: 'text-amber-500', label: 'Pending' };
+        } else if (statusLower === 'pending' || statusLower === 'pending filing') {
+            config = { bg: 'bg-amber-500/10', text: 'text-amber-500', label: statusLower === 'pending' ? 'Pending' : 'Pending Filing' };
         } else if (statusLower === 'rejected' || statusLower === 'cancelled') {
             config = { bg: 'bg-rose-500/10', text: 'text-rose-500', label: 'Rejected' };
         }
@@ -210,7 +232,7 @@ const AdminDashboard = () => {
                 <div className="lg:col-span-2 bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden">
                     <div className="p-6 border-b border-zinc-800 flex items-center justify-between">
                         <h2 className="text-lg font-semibold text-white">Recent Filings</h2>
-                        <button onClick={() => setActiveTab('orders')} className="text-zinc-400 hover:text-white text-sm font-medium flex items-center gap-1 group">
+                        <button onClick={() => setActiveTab('filings')} className="text-zinc-400 hover:text-white text-sm font-medium flex items-center gap-1 group">
                             View All <ChevronRight size={14} className="group-hover:translate-x-1 transition-transform" />
                         </button>
                     </div>
@@ -225,27 +247,27 @@ const AdminDashboard = () => {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-zinc-800/50">
-                                {orders.slice(0, 5).map((order) => (
-                                    <tr key={order.id} className="hover:bg-zinc-800/30 transition-colors group">
+                                {filings.slice(0, 5).map((filing) => (
+                                    <tr key={filing.id} className="hover:bg-zinc-800/30 transition-colors group">
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-3">
                                                 <div className="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-400 text-xs font-bold">
-                                                    {order.clientName[0]}
+                                                    {filing.clientName[0]}
                                                 </div>
                                                 <div>
-                                                    <p className="text-sm font-medium text-zinc-200 group-hover:text-white transition-colors">{order.clientName}</p>
-                                                    <p className="text-[10px] text-zinc-500 font-mono">{order.id.substring(0, 8)}</p>
+                                                    <p className="text-sm font-medium text-zinc-200 group-hover:text-white transition-colors">{filing.clientName}</p>
+                                                    <p className="text-[10px] text-zinc-500 font-mono">{filing.id.substring(0, 8)}</p>
                                                 </div>
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <p className="text-sm text-zinc-400">{order.service}</p>
+                                            <p className="text-sm text-zinc-400">{filing.service}</p>
                                         </td>
                                         <td className="px-6 py-4">
-                                            {getStatusBadge(order.status)}
+                                            {getStatusBadge(filing.status)}
                                         </td>
                                         <td className="px-6 py-4 text-right">
-                                            <p className="text-sm font-bold text-white">{order.amount}</p>
+                                            <p className="text-sm font-bold text-white">{filing.amount}</p>
                                         </td>
                                     </tr>
                                 ))}
@@ -441,7 +463,7 @@ const AdminDashboard = () => {
     const renderOrders = () => {
         const filteredOrders = orders.filter(order =>
             order.clientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            order.id.toLowerCase().includes(searchQuery.toLowerCase())
+            order.transactionId.toLowerCase().includes(searchQuery.toLowerCase())
         );
 
         return (
@@ -449,7 +471,94 @@ const AdminDashboard = () => {
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
                     <div>
                         <h2 className="text-3xl font-bold text-white tracking-tight flex items-center gap-3">
-                            Filings <span className="text-zinc-500 font-normal">({orders.length})</span>
+                            Orders <span className="text-zinc-500 font-normal">({orders.length})</span>
+                        </h2>
+                        <p className="text-zinc-500 text-sm mt-1 font-medium">Manage and review all successful payment transactions.</p>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                        <div className="relative">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" size={16} />
+                            <input
+                                type="text"
+                                placeholder="Search orders..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="bg-zinc-900 border border-zinc-800 text-zinc-200 pl-10 pr-4 py-2.5 rounded-xl w-full md:w-64 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm"
+                            />
+                        </div>
+                    </div>
+                </div>
+
+                <div className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden shadow-2xl">
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left">
+                            <thead className="bg-zinc-800/50">
+                                <tr>
+                                    <th className="px-6 py-4 text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Transaction ID</th>
+                                    <th className="px-6 py-4 text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Client</th>
+                                    <th className="px-6 py-4 text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Plan</th>
+                                    <th className="px-6 py-4 text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Date</th>
+                                    <th className="px-6 py-4 text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Status</th>
+                                    <th className="px-6 py-4 text-[10px] font-bold text-zinc-500 uppercase tracking-widest text-right">Form Status</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-zinc-800/50">
+                                {filteredOrders.map((order) => (
+                                    <tr key={order.id} className="hover:bg-zinc-800/30 transition-colors group">
+                                        <td className="px-6 py-5 text-sm font-mono text-zinc-500">{order.transactionId}</td>
+                                        <td className="px-6 py-5">
+                                            <div>
+                                                <p className="text-sm font-bold text-zinc-200">{order.clientName}</p>
+                                                <p className="text-[10px] text-zinc-500">{order.clientEmail}</p>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-5">
+                                            <p className="text-sm text-white font-medium">{order.service}</p>
+                                            <p className="text-[10px] font-bold text-zinc-500 mt-0.5">{order.amount}</p>
+                                        </td>
+                                        <td className="px-6 py-5 text-sm text-zinc-400">{order.date}</td>
+                                        <td className="px-6 py-5">
+                                            <span className={`px-2 py-1 rounded-md text-[10px] font-bold uppercase ${
+                                                order.status === 'Completed' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-rose-500/10 text-rose-500'
+                                            }`}>
+                                                {order.status}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-5 text-right">
+                                            <span className={`px-2 py-1 rounded-md text-[10px] font-bold uppercase ${
+                                                order.itrStatus !== 'Pending Filing' ? 'bg-blue-500/10 text-blue-500' : 'bg-zinc-800 text-zinc-500'
+                                            }`}>
+                                                {order.itrStatus}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                ))}
+                                {filteredOrders.length === 0 && (
+                                    <tr>
+                                        <td colSpan="6" className="px-6 py-12 text-center text-zinc-500 font-medium">No orders found.</td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
+    const renderFilings = () => {
+        const filteredFilings = filings.filter(filing =>
+            filing.clientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            filing.id.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+
+        return (
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+                    <div>
+                        <h2 className="text-3xl font-bold text-white tracking-tight flex items-center gap-3">
+                            Filings <span className="text-zinc-500 font-normal">({filings.length})</span>
                         </h2>
                         <p className="text-zinc-500 text-sm mt-1 font-medium">Manage and review all Income Tax Return submissions.</p>
                     </div>
@@ -465,9 +574,6 @@ const AdminDashboard = () => {
                                 className="bg-zinc-900 border border-zinc-800 text-zinc-200 pl-10 pr-4 py-2.5 rounded-xl w-full md:w-64 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm"
                             />
                         </div>
-                        <button className="p-2.5 bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white rounded-xl transition-all">
-                            <Filter size={18} />
-                        </button>
                     </div>
                 </div>
 
@@ -476,42 +582,38 @@ const AdminDashboard = () => {
                         <table className="w-full text-left">
                             <thead className="bg-zinc-800/50">
                                 <tr>
-                                    <th className="px-6 py-4 text-[10px] font-bold text-zinc-500 uppercase tracking-widest uppercase tracking-widest">ID</th>
-                                    <th className="px-6 py-4 text-[10px] font-bold text-zinc-500 uppercase tracking-widest uppercase tracking-widest">Client</th>
-                                    <th className="px-6 py-4 text-[10px] font-bold text-zinc-500 uppercase tracking-widest uppercase tracking-widest">Service Plan</th>
-                                    <th className="px-6 py-4 text-[10px] font-bold text-zinc-500 uppercase tracking-widest uppercase tracking-widest">Submitted</th>
-                                    <th className="px-6 py-4 text-[10px] font-bold text-zinc-500 uppercase tracking-widest uppercase tracking-widest">Status</th>
-                                    <th className="px-6 py-4 text-[10px] font-bold text-zinc-500 uppercase tracking-widest uppercase tracking-widest text-right">Actions</th>
+                                    <th className="px-6 py-4 text-[10px] font-bold text-zinc-500 uppercase tracking-widest">ID</th>
+                                    <th className="px-6 py-4 text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Client</th>
+                                    <th className="px-6 py-4 text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Service Plan</th>
+                                    <th className="px-6 py-4 text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Submitted</th>
+                                    <th className="px-6 py-4 text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Status</th>
+                                    <th className="px-6 py-4 text-[10px] font-bold text-zinc-500 uppercase tracking-widest text-right">Actions</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-zinc-800/50">
-                                {filteredOrders.map((order) => (
-                                    <tr key={order.id} className="hover:bg-zinc-800/30 transition-colors group">
-                                        <td className="px-6 py-5 text-sm font-mono text-zinc-500">#{order.id.substring(0, 8)}</td>
+                                {filteredFilings.map((filing) => (
+                                    <tr key={filing.id} className="hover:bg-zinc-800/30 transition-colors group">
+                                        <td className="px-6 py-5 text-sm font-mono text-zinc-500">#{filing.id.substring(0, 8)}</td>
                                         <td className="px-6 py-5">
                                             <div className="flex items-center gap-3">
                                                 <div className="w-9 h-9 rounded-lg bg-zinc-800 flex items-center justify-center text-zinc-400 group-hover:text-white transition-colors">
                                                     <Users size={16} />
                                                 </div>
                                                 <div>
-                                                    <p className="text-sm font-bold text-zinc-200 group-hover:text-blue-400 transition-colors cursor-pointer">{order.clientName}</p>
-                                                    <p className="text-[10px] text-zinc-500">{order.clientEmail}</p>
+                                                    <p className="text-sm font-bold text-zinc-200 group-hover:text-blue-400 transition-colors cursor-pointer">{filing.clientName}</p>
+                                                    <p className="text-[10px] text-zinc-500">{filing.clientEmail}</p>
                                                 </div>
                                             </div>
                                         </td>
                                         <td className="px-6 py-5">
-                                            <p className="text-sm text-white font-medium">{order.service}</p>
-                                            <p className="text-[10px] font-bold text-zinc-500 mt-0.5 tracking-wider uppercase">{order.amount}</p>
+                                            <p className="text-sm text-white font-medium">{filing.service}</p>
+                                            <p className="text-[10px] font-bold text-zinc-500 mt-0.5 tracking-wider uppercase">{filing.amount}</p>
                                         </td>
-                                        <td className="px-6 py-5">
-                                            <p className="text-sm text-zinc-400">{order.date}</p>
-                                        </td>
-                                        <td className="px-6 py-5">
-                                            {getStatusBadge(order.status)}
-                                        </td>
+                                        <td className="px-6 py-5 text-sm text-zinc-400">{filing.date}</td>
+                                        <td className="px-6 py-5">{getStatusBadge(filing.status)}</td>
                                         <td className="px-6 py-5 text-right">
                                             <button
-                                                onClick={() => setSelectedOrder(order)}
+                                                onClick={() => setSelectedOrder(filing)}
                                                 className="inline-flex items-center gap-2 bg-blue-600/10 hover:bg-blue-600 text-blue-500 hover:text-white px-4 py-2 rounded-lg text-xs font-bold transition-all"
                                             >
                                                 <Eye size={14} /> View
@@ -519,6 +621,11 @@ const AdminDashboard = () => {
                                         </td>
                                     </tr>
                                 ))}
+                                {filteredFilings.length === 0 && (
+                                    <tr>
+                                        <td colSpan="6" className="px-6 py-12 text-center text-zinc-500 font-medium">No filings found.</td>
+                                    </tr>
+                                )}
                             </tbody>
                         </table>
                     </div>
@@ -629,6 +736,7 @@ const AdminDashboard = () => {
             case 'users': return renderUsers();
             case 'requests': return renderRequests();
             case 'orders': return renderOrders();
+            case 'filings': return renderFilings();
             case 'documents':
                 return <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-12 text-center"><p className="text-zinc-500 font-medium">Document Archive coming soon...</p></div>;
             case 'settings':

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
 import { auth } from "../../firebase/firebase";
 import { Phone, CheckCircle2, AlertCircle, ArrowRight, Loader2 } from 'lucide-react';
+import api from '../../api/axios';
 
 const PhoneOTPLogin = ({ onAuthSuccess }) => {
   const [phoneNumber, setPhoneNumber] = useState("+91");
@@ -16,7 +17,7 @@ const PhoneOTPLogin = ({ onAuthSuccess }) => {
       window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
         'size': 'invisible',
         'callback': (response) => {
-          // reCAPTCHA solved, allow signInWithPhoneNumber.
+          console.log("Invisible reCAPTCHA verified successfully");
         }
       });
     }
@@ -25,12 +26,28 @@ const PhoneOTPLogin = ({ onAuthSuccess }) => {
   const sendOTP = async (e) => {
     e.preventDefault();
     setError("");
+    
+    // Strict Normalization for Firebase (+91XXXXXXXXXX)
+    const cleanNumber = phoneNumber.replace(/\D/g, '').slice(-10);
+    const finalFormattedNumber = cleanNumber.length === 10 ? `+91${cleanNumber}` : phoneNumber;
+    
     setLoading(true);
 
     try {
+      // 1. Check if user exists in our DB first
+      const checkRes = await api.post('/auth/check-user', { identifier: cleanNumber });
+      
+      if (!checkRes.data.exists) {
+        setError(checkRes.data.message || "You are a new user, please register yourself first.");
+        setLoading(false);
+        return;
+      }
+
+      // 2. If user exists, proceed with Firebase OTP
+      console.log(`📡 Sending OTP to Firebase: ${finalFormattedNumber}`);
       setupRecaptcha();
       const appVerifier = window.recaptchaVerifier;
-      const result = await signInWithPhoneNumber(auth, phoneNumber, appVerifier);
+      const result = await signInWithPhoneNumber(auth, finalFormattedNumber, appVerifier);
       setConfirmationResult(result);
       setStep('otp');
       console.log("OTP Sent Successfully");

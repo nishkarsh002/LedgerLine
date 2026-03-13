@@ -13,7 +13,8 @@ import {
     getAdminRequests,
     handleAdminRequest,
     firebaseLogin,
-    firebaseVerifyMobile
+    firebaseVerifyMobile,
+    checkUser
 } from '../controllers/authController.js';
 import { protect, authorize } from '../middlewares/authMiddleware.js';
 import passport from 'passport';
@@ -30,6 +31,7 @@ router.post('/resend-otp', resendOTP);
 // Mobile Verification (Protected: User Must Have Token first)
 router.post('/send-mobile-otp', protect, sendMobileOTP);
 router.post('/verify-mobile-otp', protect, verifyMobileOTP);
+router.post('/check-user', checkUser);
 
 router.get('/me', protect, getMe);
 router.get('/users', protect, authorize('admin'), getUsers);

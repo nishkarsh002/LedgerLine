@@ -16,11 +16,17 @@ const PaymentSuccess = () => {
         : '/dashboard';
 
     useEffect(() => {
+        // If no state exists (e.g. direct access or back button), redirect away
+        if (!transactionId) {
+            navigate('/dashboard', { replace: true });
+            return;
+        }
+
         const timer = setInterval(() => {
             setCountdown((prev) => {
                 if (prev <= 1) {
                     clearInterval(timer);
-                    navigate(targetUrl);
+                    navigate(targetUrl, { replace: true });
                     return 0;
                 }
                 return prev - 1;
@@ -28,7 +34,7 @@ const PaymentSuccess = () => {
         }, 1000);
 
         return () => clearInterval(timer);
-    }, [navigate, targetUrl]);
+    }, [navigate, targetUrl, transactionId]);
 
     return (
         <div className="min-h-screen bg-slate-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
@@ -50,7 +56,7 @@ const PaymentSuccess = () => {
 
                 <div className="space-y-3">
                     <button
-                        onClick={() => navigate(targetUrl)}
+                        onClick={() => navigate(targetUrl, { replace: true })}
                         className="w-full flex items-center justify-center gap-2 bg-blue-600 text-white py-3 px-6 rounded-xl font-semibold hover:bg-blue-700 transition-colors"
                     >
                         <FileText size={18} />
@@ -58,7 +64,7 @@ const PaymentSuccess = () => {
                     </button>
 
                     <button
-                        onClick={() => navigate('/dashboard')}
+                        onClick={() => navigate('/dashboard', { replace: true })}
                         className="w-full flex items-center justify-center gap-2 bg-white border border-slate-200 text-slate-700 py-3 px-6 rounded-xl font-semibold hover:bg-slate-50 transition-colors"
                     >
                         <LayoutDashboard size={18} />

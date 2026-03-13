@@ -22,6 +22,11 @@ const AdminLogin = () => {
     if (token) {
       localStorage.setItem('admin_token', token);
       
+      // Remove token from URL for security and clean UI
+      const url = new URL(window.location);
+      url.searchParams.delete('token');
+      window.history.replaceState({}, document.title, url.pathname + url.search);
+
       // Verify user role before redirecting
       const checkRoleAndRedirect = async () => {
         try {

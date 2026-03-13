@@ -47,7 +47,9 @@ export default function CheckoutForm({ serviceId, planId, planName }) {
 
                 if (data.success && data.purchaseId) {
                     // Navigate to Payment Success Page instead of directly form
+                    // Use replace: true so the user can't go back to the payment form
                     navigate('/payment-success', {
+                        replace: true,
                         state: {
                             transactionId: paymentIntent.id,
                             serviceId: serviceId,

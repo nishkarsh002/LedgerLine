@@ -12,8 +12,8 @@ const GSTRegistration = () => {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Header */}
           <div className="text-center mb-12">
-            <div className="w-16 h-16 bg-orange-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
-              <Receipt className="w-8 h-8 text-orange-600" />
+            <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
+              <Receipt className="w-8 h-8 text-blue-600" />
             </div>
             <h1 className="text-4xl font-extrabold text-slate-900 mb-4">
               GST Registration
@@ -40,7 +40,7 @@ const GSTRegistration = () => {
                     "Post-registration compliance setup"
                   ].map((item, idx) => (
                     <li key={idx} className="flex items-center gap-3">
-                      <CheckCircle className="w-5 h-5 text-green-600" />
+                      <CheckCircle className="w-5 h-5 text-blue-600" />
                       <span className="text-slate-700">{item}</span>
                     </li>
                   ))}
@@ -60,7 +60,7 @@ const GSTRegistration = () => {
                     "Authorized signatory details"
                   ].map((item, idx) => (
                     <li key={idx} className="flex items-center gap-3">
-                      <div className="w-2 h-2 bg-orange-600 rounded-full"></div>
+                      <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
                       <span className="text-slate-700">{item}</span>
                     </li>
                   ))}
@@ -71,7 +71,7 @@ const GSTRegistration = () => {
             <div className="mt-8 text-center">
               <Link
                 to="/login"
-                className="inline-block bg-orange-600 text-white px-8 py-4 rounded-2xl font-bold hover:bg-orange-700 transition-colors"
+                className="inline-block bg-[#2563eb] text-white px-10 py-4 rounded-2xl font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-900/10"
               >
                 Start GST Registration - ₹1,499
               </Link>

@@ -5,6 +5,7 @@ import Plan from '../models/Plan.js';
 import ITRForm from '../models/ITRForm.js';
 import AppError from '../utils/AppError.js';
 import sendEmail from '../utils/sendEmail.js';
+import { getInvoiceTemplate } from '../utils/emailTemplates.js';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -80,6 +81,21 @@ export const confirmPayment = asyncHandler(async (req, res, next) => {
         req.user.purchasedPlans.push(purchase._id);
         await req.user.save();
 
+        // Send confirmation email (Mock)
+        try {
+            const plan = await Plan.findById(planId);
+            if (plan) {
+                await sendEmail({
+                    email: req.user.email,
+                    subject: 'Payment Successful - LedgerLine Receipt',
+                    message: `You have successfully purchased ${plan.name}. Transaction ID: ${paymentIntentId}`,
+                    html: getInvoiceTemplate(req.user, purchase, plan)
+                });
+            }
+        } catch (err) {
+            console.error('Email failed (Mock):', err);
+        }
+
         return res.status(200).json({
             success: true,
             message: 'MOCK Payment confirmed successfully',
@@ -119,14 +135,17 @@ export const confirmPayment = asyncHandler(async (req, res, next) => {
 
             // Send confirmation email
             try {
-                await sendEmail({
-                    email: req.user.email,
-                    subject: 'Payment Successful - Plan Activated',
-                    message: `You have successfully purchased the plan associated with purchase ID: ${purchase._id}. You can now proceed to file your ITR.`
-                });
+                const plan = await Plan.findById(purchase.planId);
+                if (plan) {
+                    await sendEmail({
+                        email: req.user.email,
+                        subject: 'Payment Successful - LedgerLine Receipt',
+                        message: `You have successfully purchased ${plan.name}. Transaction ID: ${paymentIntentId}`,
+                        html: getInvoiceTemplate(req.user, purchase, plan)
+                    });
+                }
             } catch (err) {
-                console.error(err);
-                // Don't fail the request if email fails
+                console.error('Email failed:', err);
             }
 
             res.status(200).json({
@@ -213,6 +232,45 @@ export const getMyOrders = asyncHandler(async (req, res, next) => {
         }
 
         // Convert to plain object to attach properties
+        const purchaseObj = purchase.toObject();
+
+        return {
+            ...purchaseObj,
+            itrStatus,
+            itrId,
+            submittedAt
+        };
+    }));
+
+    res.status(200).json({
+        success: true,
+        count: ordersWithStatus.length,
+        data: ordersWithStatus
+    });
+});
+// @desc      Get All Orders (Admin)
+// @route     GET /api/v1/payments/all
+// @access    Private (Admin)
+export const getAllOrders = asyncHandler(async (req, res, next) => {
+    const purchases = await Purchase.find()
+        .populate('userId', 'name email mobile')
+        .populate('planId')
+        .sort({ createdAt: -1 });
+
+    const ordersWithStatus = await Promise.all(purchases.map(async (purchase) => {
+        let itrStatus = 'Pending Filing';
+        let itrId = null;
+        let submittedAt = null;
+
+        if (purchase.formUnlocked) {
+            const itr = await ITRForm.findOne({ purchaseId: purchase._id });
+            if (itr) {
+                itrStatus = itr.status || 'Submitted';
+                itrId = itr._id;
+                submittedAt = itr.submittedAt || itr.createdAt;
+            }
+        }
+
         const purchaseObj = purchase.toObject();
 
         return {

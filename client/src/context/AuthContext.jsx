@@ -33,6 +33,12 @@ export const AuthProvider = ({ children }) => {
         // If we are on an admin path, save as admin_token
         const key = isAdminPath ? 'admin_token' : 'token';
         localStorage.setItem(key, urlToken);
+
+        // Remove token from URL for security
+        urlParams.delete('token');
+        const newSearch = urlParams.toString();
+        const newPath = window.location.pathname + (newSearch ? `?${newSearch}` : '');
+        window.history.replaceState({}, document.title, newPath);
       }
 
       if (token) {

@@ -176,7 +176,7 @@ const ServiceDetail = () => {
                 <button
                   onClick={handleStartFiling}
                   disabled={loading || (!selectedPlan && !hasActivePurchase)}
-                  className="inline-flex items-center gap-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-2xl font-bold hover:from-blue-700 hover:to-purple-700 transition-all group disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="inline-flex items-center gap-3 bg-[#2563eb] text-white px-8 py-4 rounded-2xl font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-900/10 group disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {loading ? 'Checking status...' : hasActivePurchase ? 'Continue Filing' : 'Start Filing Now'}
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
@@ -188,7 +188,7 @@ const ServiceDetail = () => {
                 <ul className="space-y-4">
                   {service.features.map((feature, idx) => (
                     <li key={idx} className="flex items-center gap-3">
-                      <CheckCircle className="w-5 h-5 text-green-600" />
+                      <CheckCircle className="w-5 h-5 text-blue-600" />
                       <span className="text-slate-700">{feature}</span>
                     </li>
                   ))}
@@ -221,8 +221,8 @@ const ServiceDetail = () => {
 
               {/* Documents Required */}
               <div className="bg-white rounded-2xl shadow-md border border-slate-200 p-6">
-                <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center mb-3">
-                  <FileText className="w-5 h-5 text-green-600" />
+                <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center mb-3">
+                  <FileText className="w-5 h-5 text-blue-600" />
                 </div>
                 <h3 className="text-lg font-bold text-slate-900 mb-3">Documents Required</h3>
                 <p className="text-slate-600 mb-6">Please keep these documents ready for smooth processing:</p>
@@ -230,7 +230,7 @@ const ServiceDetail = () => {
                 <ul className="space-y-3">
                   {service.detailContent.documents.map((doc, idx) => (
                     <li key={idx} className="flex items-start gap-3">
-                      <CheckCircle className="w-5 h-5 text-green-600 mt-0.5" />
+                      <CheckCircle className="w-5 h-5 text-blue-600 mt-0.5" />
                       <span className="text-slate-700">{doc}</span>
                     </li>
                   ))}
@@ -239,8 +239,8 @@ const ServiceDetail = () => {
 
               {/* Process & Timeline */}
               <div className="bg-white rounded-2xl shadow-md border border-slate-200 p-6">
-                <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center mb-3">
-                  <FileText className="w-5 h-5 text-purple-600" />
+                <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center mb-3">
+                  <FileText className="w-5 h-5 text-blue-600" />
                 </div>
                 <h3 className="text-lg font-bold text-slate-900 mb-3">Process & Timeline</h3>
 
@@ -268,8 +268,8 @@ const ServiceDetail = () => {
                     </div>
                   </div>
 
-                  <div className="mt-6 p-4 bg-green-50 rounded-xl">
-                    <div className="flex items-center gap-2 text-green-700">
+                  <div className="mt-6 p-4 bg-blue-50 rounded-xl border border-blue-100">
+                    <div className="flex items-center gap-2 text-blue-700">
                       <Shield className="w-4 h-4" />
                       <span className="font-semibold text-sm">Completion: 3-5 business days</span>
                     </div>
@@ -280,7 +280,7 @@ const ServiceDetail = () => {
           )}
 
           {/* CTA Section */}
-          <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-3xl p-8 text-center text-white">
+          <div className="bg-[#2563eb] rounded-3xl p-10 text-center text-white shadow-xl shadow-blue-900/10">
             <h2 className="text-2xl font-bold mb-3">Ready to Get Started?</h2>
             <p className="text-xl mb-8 opacity-90">
               Join thousands of satisfied customers who trust FirstFiling for their tax needs

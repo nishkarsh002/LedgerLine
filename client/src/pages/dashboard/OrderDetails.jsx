@@ -11,11 +11,19 @@ const OrderDetails = ({ order, onClose }) => {
 
   useEffect(() => {
     const fetchItrDetails = async () => {
-      if (!order.originalData.itrId) return;
+      // If we already have personalInfo in originalData, it's already the ITR form object (e.g. from Admin Dashboard)
+      if (order.originalData && order.originalData.personalInfo) {
+        setItrData(order.originalData);
+        return;
+      }
+
+      // Otherwise, get the ID of the ITR
+      const idToFetch = order.itrId || order.originalData.itrId;
+      if (!idToFetch) return;
 
       try {
         setLoadingItr(true);
-        const { data } = await api.get(`/itr/${order.originalData.itrId}`);
+        const { data } = await api.get(`/itr/${idToFetch}`);
         if (data.success) {
           setItrData(data.data);
         }
@@ -27,7 +35,7 @@ const OrderDetails = ({ order, onClose }) => {
     };
 
     fetchItrDetails();
-  }, [order.originalData.itrId]);
+  }, [order.itrId, order.originalData]);
 
   // Use real data from itrData if available
   const clientDocuments = itrData?.uploadedDocs || [];
@@ -107,7 +115,7 @@ const OrderDetails = ({ order, onClose }) => {
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
       <div className="bg-white rounded-3xl shadow-2xl max-w-3xl w-full max-h-[85vh] flex flex-col overflow-hidden transition-all duration-500 scale-100 animate-in fade-in zoom-in-95">
         {/* Header - Balanced Compact */}
-        <div className="relative bg-[#1e40af] p-6 text-white flex-shrink-0 overflow-hidden">
+        <div className="relative bg-[#2563eb] p-6 text-white flex-shrink-0 overflow-hidden">
           <div className="absolute top-0 right-0 -mr-12 -mt-12 w-48 h-48 bg-white/5 rounded-full blur-3xl"></div>
           
           <div className="relative flex items-center justify-between mb-6">
@@ -163,7 +171,7 @@ const OrderDetails = ({ order, onClose }) => {
             >
               Filled Form Details
               {activeTab === 'itr-details' && (
-                <div className="absolute bottom-0 left-0 right-0 h-1 bg-[#1e40af] rounded-t-full"></div>
+                <div className="absolute bottom-0 left-0 right-0 h-1 bg-[#2563eb] rounded-t-full"></div>
               )}
             </button>
             <button
@@ -174,7 +182,7 @@ const OrderDetails = ({ order, onClose }) => {
             >
               Requested Documents by CA
               {activeTab === 'ca-docs' && (
-                <div className="absolute bottom-0 left-0 right-0 h-1 bg-[#1e40af] rounded-t-full"></div>
+                <div className="absolute bottom-0 left-0 right-0 h-1 bg-[#2563eb] rounded-t-full"></div>
               )}
             </button>
           </div>
@@ -356,7 +364,7 @@ const OrderDetails = ({ order, onClose }) => {
                     console.log('Document requested');
                     setShowRequestModal(false);
                   }}
-                  className="flex-1 px-4 py-3 bg-[#1e40af] text-white rounded-xl font-semibold hover:bg-blue-800 transition-all"
+                  className="flex-1 px-4 py-3 bg-[#2563eb] text-white rounded-xl font-semibold hover:bg-blue-700 transition-all"
                 >
                   Send Request
                 </button>

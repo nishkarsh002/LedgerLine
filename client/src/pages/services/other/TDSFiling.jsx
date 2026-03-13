@@ -9,8 +9,8 @@ const TDSFiling = () => {
       
       <div className="py-20">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="w-16 h-16 bg-red-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
-            <CreditCard className="w-8 h-8 text-red-600" />
+          <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
+            <CreditCard className="w-8 h-8 text-blue-600" />
           </div>
           <h1 className="text-4xl font-extrabold text-slate-900 mb-4">
             TDS Filing

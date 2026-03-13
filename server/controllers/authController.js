@@ -3,6 +3,7 @@ import User from '../models/User.js';
 import { Admin } from '../config/index.js';
 import ErrorResponse from '../utils/AppError.js';
 import sendEmail from '../utils/sendEmail.js';
+import { getVerificationTemplate } from '../utils/emailTemplates.js';
 import admin from 'firebase-admin';
 
 // @desc      Register user
@@ -43,7 +44,8 @@ export const register = asyncHandler(async (req, res, next) => {
         await sendEmail({
             email: user.email,
             subject: 'Email Verification - LedgerLine',
-            message
+            message: `Your verification code is: ${otp}`,
+            html: getVerificationTemplate(otp, 'Verification')
         });
     } catch (err) {
         console.error(err);
@@ -86,7 +88,7 @@ export const login = asyncHandler(async (req, res, next) => {
     const user = await User.findOne(query).select('+password');
 
     if (!user) {
-        return next(new ErrorResponse('Invalid credentials', 401));
+        return next(new ErrorResponse('You are a new user, please register yourself first.', 404));
     }
 
     // Check if password matches
@@ -126,7 +128,8 @@ export const login = asyncHandler(async (req, res, next) => {
             await sendEmail({
                 email: user.email,
                 subject: 'Login Verification - LedgerLine',
-                message: `Your verification code is: ${otp}`
+                message: `Your verification code is: ${otp}`,
+                html: getVerificationTemplate(otp, 'Login')
             });
         } catch (err) {
             console.error('Email send fail', err);
@@ -193,7 +196,8 @@ export const resendOTP = asyncHandler(async (req, res, next) => {
         await sendEmail({
             email: user.email,
             subject: 'New Verification Code - LedgerLine',
-            message: `Your new verification code is: ${otp}`
+            message: `Your new verification code is: ${otp}`,
+            html: getVerificationTemplate(otp, 'Verification')
         });
     } catch (err) {
         if (process.env.NODE_ENV === 'development') {
@@ -322,9 +326,21 @@ export const sendMobileOTP = asyncHandler(async (req, res, next) => {
 
     await user.save({ validateBeforeSave: false });
 
+    // Also send via Email as a backup/reference since user requested it
+    try {
+        await sendEmail({
+            email: user.email,
+            subject: 'Mobile Verification Code - LedgerLine',
+            message: `Your mobile verification code is: ${otp}`,
+            html: getVerificationTemplate(otp, 'Verification')
+        });
+    } catch (err) {
+        console.error('Email backup for mobile OTP failed:', err);
+    }
+
     res.status(200).json({
         success: true,
-        message: 'Mobile verification OTP sent'
+        message: 'Mobile verification OTP sent via SMS and Email'
     });
 });
 
@@ -498,6 +514,46 @@ export const firebaseLogin = asyncHandler(async (req, res, next) => {
         console.error('Firebase token verification failed:', error);
         return next(new ErrorResponse('Authentication failed', 401));
     }
+});
+
+// @desc      Check if user exists
+// @route     POST /api/v1/auth/check-user
+// @access    Public
+export const checkUser = asyncHandler(async (req, res, next) => {
+    const { identifier } = req.body;
+
+    if (!identifier) {
+        return next(new ErrorResponse('Please provide an email or mobile number', 400));
+    }
+
+    // Normalize identifier (remove spaces and special characters from mobile)
+    const normalizedIdentifier = identifier.trim().replace(/\s/g, '');
+
+    // Check if input is likely a mobile number
+    const isMobile = /^\d{10}$/.test(normalizedIdentifier) || (/^\+91\d{10}$/.test(normalizedIdentifier));
+    
+    let query = {};
+    if (isMobile) {
+        const last10 = normalizedIdentifier.slice(-10);
+        query = { mobile: last10 };
+    } else {
+        query = { email: normalizedIdentifier.toLowerCase() };
+    }
+
+    const user = await User.findOne(query);
+
+    if (!user) {
+        return res.status(200).json({
+            success: false,
+            exists: false,
+            message: 'You are a new user, please register yourself first.'
+        });
+    }
+
+    res.status(200).json({
+        success: true,
+        exists: true
+    });
 });
 
 // @desc      Verify Mobile via Firebase
