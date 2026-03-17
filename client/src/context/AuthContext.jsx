@@ -67,6 +67,39 @@ export const AuthProvider = ({ children }) => {
     checkLoggedIn();
   }, []);
 
+  // Sync token changes to axios headers
+  useEffect(() => {
+    const path = window.location.pathname;
+    const isAdminPath = path.startsWith('/admin');
+    const token = isAdminPath ? localStorage.getItem('admin_token') : localStorage.getItem('token');
+    
+    if (token) {
+        api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    } else {
+        delete api.defaults.headers.common['Authorization'];
+    }
+  }, [isLoggedIn]);
+
+  // Background polling to check session validity every 60 seconds
+  useEffect(() => {
+    let interval;
+    if (isLoggedIn) {
+      interval = setInterval(async () => {
+        try {
+          const { data } = await api.get('/auth/me');
+          if (!data.success) {
+            logout();
+          }
+        } catch (error) {
+          if (error.response && error.response.status === 401) {
+            logout();
+          }
+        }
+      }, 60000); // 60 seconds
+    }
+    return () => clearInterval(interval);
+  }, [isLoggedIn]);
+
   const login = async (userData) => {
     // Expecting userData to contain email and password
     try {
@@ -246,23 +279,7 @@ export const AuthProvider = ({ children }) => {
     };
   }, []);
 
-  // Background polling to check session validity every 15 seconds
-  useEffect(() => {
-    let interval;
-    if (isLoggedIn) {
-      interval = setInterval(async () => {
-        try {
-          const { data } = await api.get('/auth/me');
-          if (!data.success) {
-            logout();
-          }
-        } catch (error) {
-          // Interceptor will handle logout on 401
-        }
-      }, 15000); // 15 seconds
-    }
-    return () => clearInterval(interval);
-  }, [isLoggedIn]);
+
 
   return (
     <AuthContext.Provider value={{ isLoggedIn, user, isAdmin, login, register, verifyOTP, resendOTP, sendMobileOTP, verifyMobileOTP, logout, loading }}>

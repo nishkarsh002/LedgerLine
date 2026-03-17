@@ -22,6 +22,9 @@ connectDB();
 
 const app = express();
 
+// Trust proxy - Required for Vercel/proxied environments to get correct IP
+app.set('trust proxy', 1);
+
 // Body parser
 app.use(express.json());
 
@@ -57,7 +60,8 @@ app.use(cors({
 // Rate limiting
 const limiter = rateLimit({
     windowMs: 10 * 60 * 1000, // 10 mins
-    max: 100
+    max: 100,
+    validate: { xForwardedForHeader: false }
 });
 app.use(limiter);
 
