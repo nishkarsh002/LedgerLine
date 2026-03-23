@@ -73,14 +73,19 @@ const ServiceDetail = () => {
               setActivePurchaseId(statusRes.data.purchaseId);
             }
           } catch (statusErr) {
-            console.error("Error checking purchase status:", statusErr);
+            console.error("Error checking purchase status:", statusErr.response || statusErr);
             // Allow continuing to payment if check fails, logic handles duplicate payments on backend too
           }
         }
 
       } catch (error) {
-        console.error("Error fetching plan:", error);
-        setPlanError('Unable to load pricing details. Please try again later.');
+        console.error("Backend API Error:", {
+          status: error.response?.status,
+          statusText: error.response?.statusText,
+          message: error.message,
+          url: error.config?.url
+        });
+        setPlanError('Unable to load latest pricing. Using default rates.');
       } finally {
         setLoading(false);
       }
@@ -157,9 +162,9 @@ const ServiceDetail = () => {
                 </div>
 
                 {planError && (
-                  <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg flex items-center gap-2">
+                  <div className="mb-4 p-3 bg-amber-50 text-amber-700 rounded-lg flex items-center gap-2 border border-amber-100 italic transition-all">
                     <AlertCircle size={16} />
-                    <span className="text-sm">{planError}</span>
+                    <span className="text-sm font-medium">{planError}</span>
                   </div>
                 )}
 
