@@ -11,15 +11,12 @@ const api = axios.create({
 // Add a request interceptor to inject the token
 api.interceptors.request.use(
     (config) => {
-        const path = window.location.pathname;
-        const isAdminPath = path.startsWith('/admin');
+        // Try to get token from localStorage
+        const adminToken = localStorage.getItem('admin_token');
+        const userToken = localStorage.getItem('token');
 
-        let token = null;
-        if (isAdminPath) {
-            token = localStorage.getItem('admin_token') || localStorage.getItem('token');
-        } else {
-            token = localStorage.getItem('token');
-        }
+        // Prioritize admin_token for all requests if it exists, otherwise use userToken
+        const token = adminToken || userToken;
 
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;

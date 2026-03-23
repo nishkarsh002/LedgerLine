@@ -33,34 +33,51 @@ if (process.env.NODE_ENV === 'development') {
     app.use(morgan('dev'));
 }
 
-// Set security headers
-app.use(helmet());
+// Set security headers with relaxed COOP for Firebase Auth popups
+app.use(helmet({
+    crossOriginOpenerPolicy: { policy: "same-origin-allow-popups" },
+    crossOriginResourcePolicy: { policy: "cross-origin" }
+}));
 
 // Enable CORS
 const allowedOrigins = [
     'http://localhost:5173',
     'https://taxproject-stg.vercel.app',
-    'https://taxproject-api.vercel.app'
+    'https://taxproject-api.vercel.app',
+    'https://ledgerline.vercel.app' // Adding potential production domain if exists
 ];
 
-app.use(cors({
+const corsOptions = {
     origin: function (origin, callback) {
         // allow requests with no origin (like mobile apps or curl requests)
         if (!origin) return callback(null, true);
-        if (allowedOrigins.indexOf(origin) === -1) {
-            var msg = 'The CORS policy for this site does not ' +
-                'allow access from the specified Origin.';
-            return callback(new Error(msg), false);
+        
+        const isAllowed = allowedOrigins.indexOf(origin) !== -1 || 
+                         origin.endsWith('.vercel.app'); // More flexible for Vercel preview/stg domains
+        
+        if (isAllowed) {
+            callback(null, true);
+        } else {
+            console.warn(`CORS blocked for origin: ${origin}`);
+            callback(new Error('Not allowed by CORS'), false);
         }
-        return callback(null, true);
     },
-    credentials: true
-}));
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
+    credentials: true,
+    optionsSuccessStatus: 200 // Some legacy browsers (IE11, various SmartTVs) choke on 204
+};
+
+app.use(cors(corsOptions));
+// Handle preflight requests for all routes
+app.options('*', cors(corsOptions));
 
 // Rate limiting
 const limiter = rateLimit({
     windowMs: 10 * 60 * 1000, // 10 mins
     max: 100,
+    standardHeaders: true,
+    legacyHeaders: false,
     validate: { xForwardedForHeader: false }
 });
 app.use(limiter);

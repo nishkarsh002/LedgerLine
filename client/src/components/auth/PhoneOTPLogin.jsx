@@ -106,7 +106,18 @@ const PhoneOTPLogin = ({ onAuthSuccess }) => {
               <input
                 type="tel"
                 value={phoneNumber}
-                onChange={(e) => setPhoneNumber(e.target.value)}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  // Always keep +91, and only allow 10 digits after it
+                  if (val.startsWith('+91')) {
+                    const digits = val.slice(3).replace(/\D/g, '');
+                    if (digits.length <= 10) {
+                      setPhoneNumber('+91' + digits);
+                    }
+                  } else if (val.length < 3) {
+                    setPhoneNumber('+91');
+                  }
+                }}
                 placeholder="+919876543210"
                 required
                 className="w-full pl-12 pr-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all font-medium"

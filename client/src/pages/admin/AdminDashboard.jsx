@@ -76,19 +76,49 @@ const AdminDashboard = () => {
 
     // Fetch Data
     const fetchData = async () => {
+        if (!user) return; // Wait for user data to be available
+
         setLoading(true);
         try {
-            const [usersRes, paymentsRes, itrsRes, requestsRes] = await Promise.allSettled([
-                api.get('/auth/users'),
-                api.get('/payments/all'),
-                api.get('/itr/all'),
-                api.get('/auth/admin-requests')
-            ]);
+            const isAdmin = user.role === 'admin';
+            const isCA = user.role === 'ca' && user.adminStatus === 'approved';
 
-            const usersData = usersRes.status === 'fulfilled' ? usersRes.value.data.data : (console.error('Users fetch failed', usersRes.reason), []);
-            const paymentsData = paymentsRes.status === 'fulfilled' ? paymentsRes.value.data.data : (console.error('Payments fetch failed', paymentsRes.reason), []);
-            const itrsData = itrsRes.status === 'fulfilled' ? itrsRes.value.data.data : (console.error('ITRs fetch failed', itrsRes.reason), []);
-            const requestsData = requestsRes.status === 'fulfilled' ? requestsRes.value.data.data : (console.error('Requests fetch failed', requestsRes.reason), []);
+            const requests = [];
+            // Admin only requests
+            if (isAdmin) {
+                requests.push(
+                    api.get('/auth/users'),
+                    api.get('/payments/all'),
+                    api.get('/itr/all'),
+                    api.get('/auth/admin-requests')
+                );
+            } else if (isCA) {
+                // CA only requests - Filtered set
+                requests.push(
+                    api.get('/itr/all'), // Check if CA should see all or a subset
+                    // Add other CA-specific endpoints here if needed
+                );
+            }
+
+            if (requests.length === 0) {
+                setLoading(false);
+                return;
+            }
+
+            const results = await Promise.allSettled(requests);
+            
+            let usersData = [], paymentsData = [], itrsData = [], requestsData = [];
+            
+            if (isAdmin) {
+                const [usersRes, paymentsRes, itrsRes, requestsRes] = results;
+                usersData = usersRes.status === 'fulfilled' ? usersRes.value.data.data : (console.error('Users fetch failed', usersRes.reason), []);
+                paymentsData = paymentsRes.status === 'fulfilled' ? paymentsRes.value.data.data : (console.error('Payments fetch failed', paymentsRes.reason), []);
+                itrsData = itrsRes.status === 'fulfilled' ? itrsRes.value.data.data : (console.error('ITRs fetch failed', itrsRes.reason), []);
+                requestsData = requestsRes.status === 'fulfilled' ? requestsRes.value.data.data : (console.error('Requests fetch failed', requestsRes.reason), []);
+            } else if (isCA) {
+                const [itrsRes] = results;
+                itrsData = itrsRes.status === 'fulfilled' ? itrsRes.value.data.data : (console.error('ITRs fetch failed', itrsRes.reason), []);
+            }
 
             setUsers(usersData);
             setAdminRequests(requestsData);
@@ -176,8 +206,10 @@ const AdminDashboard = () => {
     };
 
     useEffect(() => {
-        fetchData();
-    }, []);
+        if (user) {
+            fetchData();
+        }
+    }, [user?.id]);
 
     // Sync tab with URL
     useEffect(() => {
