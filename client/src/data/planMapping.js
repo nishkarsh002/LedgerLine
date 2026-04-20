@@ -16,10 +16,10 @@ export const planMapping = {
     'gst-registration': { name: 'GST Registration', price: 1499 },
     'huf-registration': { name: 'HUF Registration', price: 2999 },
     'company-registration': { name: 'Company Registration', price: 6999 },
-    'llp-registration': { name: 'LLP Registration', price: 4999 },
+    'llp-registration': { _id: '699747cb583ee92f4aed58a3', name: 'LLP Registration', price: 4999 },
 
     // Other
-    'gst-filing': { name: 'GST Filing', price: 999 },
-    'tds-filing': { name: 'TDS Filing', price: 1499 },
-    'pf-esic': { name: 'PF & ESIC', price: 1999 }
+    'gst-filing': { _id: '699747cb583ee92f4aed58a4', name: 'GST Filing', price: 999 },
+    'tds-filing': { _id: '699747cb583ee92f4aed58a5', name: 'TDS Filing', price: 1499 },
+    'pf-esic': { _id: '699747cb583ee92f4aed58a6', name: 'PF & ESIC', price: 1999 }
 };
