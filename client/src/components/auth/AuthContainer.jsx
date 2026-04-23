@@ -6,12 +6,12 @@ import SignupForm from './SignupForm';
 import { Smartphone, Mail, Globe, ShieldCheck, ArrowLeft } from 'lucide-react';
 
 const AuthContainer = ({ onAuthSuccess, externalError }) => {
-  const [method, setMethod] = useState('phone'); // 'phone', 'google', 'email'
+  const [method, setMethod] = useState('google'); // 'phone', 'google', 'email'
   const [isSignup, setIsSignup] = useState(false);
 
   const tabs = [
-    { id: 'phone', label: 'Mobile OTP', icon: <Smartphone size={18} /> },
     { id: 'google', label: 'Google', icon: <Globe size={18} /> },
+    { id: 'phone', label: 'Mobile OTP', icon: <Smartphone size={18} /> },
   ];
 
   return (
