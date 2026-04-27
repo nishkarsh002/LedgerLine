@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 
+
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState(null);
@@ -113,6 +114,11 @@ const Navbar = () => {
         },
       ],
     },
+    {
+      title: "Contact Us",
+      icon: <CreditCard size={14} />,
+      path:"/contact",
+    }
   ];
 
   const handleDropdownToggle = (index) => {
@@ -137,62 +143,71 @@ const Navbar = () => {
           <div className="hidden lg:flex items-center space-x-2">
             {navigationItems.map((item, index) => (
               <div key={index} className="relative group">
-                <button
-                  className="flex items-center gap-2 px-4 py-2 font-medium text-slate-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200"
-                  onMouseEnter={() => setActiveDropdown(index)}
-                  onMouseLeave={() => setActiveDropdown(null)}
-                >
-                  {item.icon}
-                  {item.title}
-                  <ChevronDown
-                    size={16}
-                    className="transition-transform group-hover:rotate-180"
-                  />
-                </button>
-
-                {/* Mega Menu Dropdown */}
-                <div
-                  className={`absolute top-full left-0 mt-1 w-max bg-white shadow-2xl rounded-2xl border border-slate-200 transition-all duration-300 max-h-96 overflow-y-auto ${
-                    activeDropdown === index
-                      ? "opacity-100 visible translate-y-0"
-                      : "opacity-0 invisible translate-y-2"
-                  }`}
-                  onMouseEnter={() => setActiveDropdown(index)}
-                  onMouseLeave={() => setActiveDropdown(null)}
-                >
-                  <div className="p-5">
-                    {/* <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
+                {/* Plain link item (no dropdown) */}
+                {!item.sections ? (
+                  <Link
+                    to={item.path}
+                    className="flex items-center gap-2 px-4 py-2 font-medium text-slate-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200"
+                  >
+                    {item.icon}
+                    {item.title}
+                  </Link>
+                ) : (
+                  <>
+                    <button
+                      className="flex items-center gap-2 px-4 py-2 font-medium text-slate-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200"
+                      onMouseEnter={() => setActiveDropdown(index)}
+                      onMouseLeave={() => setActiveDropdown(null)}
+                    >
                       {item.icon}
                       {item.title}
-                    </h3> */}
-                    <div className="space-y-6">
-                      {item.sections.map((section, sectionIndex) => (
-                        <div key={sectionIndex}>
-                          <h4 className="text-sm font-semibold text-slate-600 mb-3 flex items-center gap-2 uppercase tracking-wide">
-                            {section.icon}
-                            {section.title}
-                          </h4>
-                          <div className="grid grid-cols-1 gap-2">
-                            {section.items.map((subItem, subIndex) => (
-                              <Link
-                                key={subIndex}
-                                to={subItem.path}
-                                className="flex items-center gap-3 p-3 text-slate-700 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all duration-200 group"
-                              >
-                                <div className="w-8 h-8 bg-slate-100 group-hover:bg-blue-100 rounded-lg flex items-center justify-center transition-colors">
-                                  {subItem.icon}
-                                </div>
-                                <span className="text-sm font-medium">
-                                  {subItem.name}
-                                </span>
-                              </Link>
-                            ))}
-                          </div>
+                      <ChevronDown
+                        size={16}
+                        className="transition-transform group-hover:rotate-180"
+                      />
+                    </button>
+
+                    {/* Mega Menu Dropdown */}
+                    <div
+                      className={`absolute top-full left-0 mt-1 w-max bg-white shadow-2xl rounded-2xl border border-slate-200 transition-all duration-300 max-h-96 overflow-y-auto ${
+                        activeDropdown === index
+                          ? "opacity-100 visible translate-y-0"
+                          : "opacity-0 invisible translate-y-2"
+                      }`}
+                      onMouseEnter={() => setActiveDropdown(index)}
+                      onMouseLeave={() => setActiveDropdown(null)}
+                    >
+                      <div className="p-5">
+                        <div className="space-y-6">
+                          {item.sections.map((section, sectionIndex) => (
+                            <div key={sectionIndex}>
+                              <h4 className="text-sm font-semibold text-slate-600 mb-3 flex items-center gap-2 uppercase tracking-wide">
+                                {section.icon}
+                                {section.title}
+                              </h4>
+                              <div className="grid grid-cols-1 gap-2">
+                                {section.items.map((subItem, subIndex) => (
+                                  <Link
+                                    key={subIndex}
+                                    to={subItem.path}
+                                    className="flex items-center gap-3 p-3 text-slate-700 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all duration-200 group"
+                                  >
+                                    <div className="w-8 h-8 bg-slate-100 group-hover:bg-blue-100 rounded-lg flex items-center justify-center transition-colors">
+                                      {subItem.icon}
+                                    </div>
+                                    <span className="text-sm font-medium">
+                                      {subItem.name}
+                                    </span>
+                                  </Link>
+                                ))}
+                              </div>
+                            </div>
+                          ))}
                         </div>
-                      ))}
+                      </div>
                     </div>
-                  </div>
-                </div>
+                  </>
+                )}
               </div>
             ))}
 
@@ -286,45 +301,59 @@ const Navbar = () => {
           <div className="py-4 space-y-2">
             {navigationItems.map((item, index) => (
               <div key={index} className="border-b border-slate-100 pb-4 mb-4">
-                <button
-                  onClick={() => handleDropdownToggle(index)}
-                  className="w-full flex items-center justify-between p-3 text-slate-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                >
-                  <div className="flex items-center gap-2">
+                {/* Plain link item (no dropdown) */}
+                {!item.sections ? (
+                  <Link
+                    to={item.path}
+                    onClick={() => setIsMenuOpen(false)}
+                    className="flex items-center gap-2 p-3 text-slate-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors font-medium"
+                  >
                     {item.icon}
-                    <span className="font-medium">{item.title}</span>
-                  </div>
-                  <ChevronDown
-                    size={16}
-                    className={`transition-transform ${
-                      activeDropdown === index ? "rotate-180" : ""
-                    }`}
-                  />
-                </button>
-
-                {activeDropdown === index && (
-                  <div className="mt-2 ml-4 space-y-3">
-                    {item.sections.map((section, sectionIndex) => (
-                      <div key={sectionIndex}>
-                        <h4 className="text-xs font-semibold text-slate-500 mb-2 uppercase tracking-wide flex items-center gap-2">
-                          {section.icon}
-                          {section.title}
-                        </h4>
-                        <div className="space-y-1 ml-4">
-                          {section.items.map((subItem, subIndex) => (
-                            <Link
-                              key={subIndex}
-                              to={subItem.path}
-                              className="flex items-center gap-2 p-2 text-sm text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                            >
-                              {subItem.icon}
-                              {subItem.name}
-                            </Link>
-                          ))}
-                        </div>
+                    <span>{item.title}</span>
+                  </Link>
+                ) : (
+                  <>
+                    <button
+                      onClick={() => handleDropdownToggle(index)}
+                      className="w-full flex items-center justify-between p-3 text-slate-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                    >
+                      <div className="flex items-center gap-2">
+                        {item.icon}
+                        <span className="font-medium">{item.title}</span>
                       </div>
-                    ))}
-                  </div>
+                      <ChevronDown
+                        size={16}
+                        className={`transition-transform ${
+                          activeDropdown === index ? "rotate-180" : ""
+                        }`}
+                      />
+                    </button>
+
+                    {activeDropdown === index && (
+                      <div className="mt-2 ml-4 space-y-3">
+                        {item.sections.map((section, sectionIndex) => (
+                          <div key={sectionIndex}>
+                            <h4 className="text-xs font-semibold text-slate-500 mb-2 uppercase tracking-wide flex items-center gap-2">
+                              {section.icon}
+                              {section.title}
+                            </h4>
+                            <div className="space-y-1 ml-4">
+                              {section.items.map((subItem, subIndex) => (
+                                <Link
+                                  key={subIndex}
+                                  to={subItem.path}
+                                  className="flex items-center gap-2 p-2 text-sm text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                >
+                                  {subItem.icon}
+                                  {subItem.name}
+                                </Link>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
             ))}

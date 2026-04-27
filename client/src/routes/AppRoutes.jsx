@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Home from '../pages/frontend/Home';
+import Contact from '../pages/frontend/Contact';
 import Login from '../pages/Login';
 import Sign_up from '../pages/sign-in/Sign_up';
 import UnifiedVerification from '../pages/sign-in/UnifiedVerification';
@@ -27,6 +28,7 @@ export default function AppRoutes() {
   return (
     <Routes>
       <Route path="/" element={<Home />} />
+      <Route path="/contact" element={<Contact />} />
       <Route path="/login" element={<Login />} />
       <Route path='/sign_up' element={<Sign_up />} />
       <Route path="/verification" element={<UnifiedVerification />} />

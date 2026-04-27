@@ -492,9 +492,9 @@ const Home = () => {
       <Footer />
 
       {/* Floating Action Button */}
-      <button className="fixed bottom-8 right-8 bg-green-500 text-white p-4 rounded-full shadow-2xl hover:bg-green-600 transition-all z-50">
+      {/* <button className="fixed bottom-8 right-8 bg-green-500 text-white p-4 rounded-full shadow-2xl hover:bg-green-600 transition-all z-50">
         <MessageSquare size={24} />
-      </button>
+      </button> */}
     </div>
   );
 };
