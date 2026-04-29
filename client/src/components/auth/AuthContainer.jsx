@@ -4,13 +4,14 @@ import GoogleLogin from './GoogleLogin';
 import EmailLogin from './EmailLogin';
 import SignupForm from './SignupForm';
 import { Smartphone, Mail, Globe, ShieldCheck, ArrowLeft } from 'lucide-react';
+import { FcGoogle } from 'react-icons/fc';
 
 const AuthContainer = ({ onAuthSuccess, externalError }) => {
   const [method, setMethod] = useState('google'); // 'phone', 'google', 'email'
   const [isSignup, setIsSignup] = useState(false);
 
   const tabs = [
-    { id: 'google', label: 'Google', icon: <Globe size={18} /> },
+    { id: 'google', label: 'Google', icon: <FcGoogle /> },
     { id: 'phone', label: 'Mobile OTP', icon: <Smartphone size={18} /> },
   ];
 

@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { Shield, Lock, Mail, AlertCircle, Chrome } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../api/axios';
+import { FcGoogle } from 'react-icons/fc';
 
 const AdminLogin = () => {
   const [error, setError] = useState('');
@@ -84,7 +85,7 @@ const AdminLogin = () => {
               onClick={() => window.location.href = 'https://taxproject-api.vercel.app/api/v1/auth/google?state=admin'}
               className="w-full bg-white border border-slate-300 text-slate-700 py-4 px-6 rounded-xl font-bold hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all flex items-center justify-center gap-3 shadow-md border-opacity-60 group"
             >
-              <Chrome className="w-6 h-6 text-blue-600 transition-transform group-hover:scale-110" />
+              <FcGoogle />
               Sign in with Google
             </button>
           </div>

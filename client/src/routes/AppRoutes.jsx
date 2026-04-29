@@ -23,6 +23,7 @@ import PaymentSuccess from '../pages/payment/PaymentSuccess';
 import PaymentFailure from '../pages/payment/PaymentFailure';
 
 import PrivateRoute from './PrivateRoute';
+import OrderDetails from '../pages/dashboard/OrderDetails';
 
 export default function AppRoutes() {
   return (
@@ -68,6 +69,15 @@ export default function AppRoutes() {
           </PrivateRoute>
         }
       />
+      <Route
+        path="/order/:orderId"
+        element={
+          <PrivateRoute>
+            <OrderDetails />
+          </PrivateRoute>
+        }
+      />
+      <Route path="/orderdetails/:id" element={<OrderDetails />} />
 
       {/* Admin Routes */}
       <Route path="/admin" element={<Navigate to="/admin/login" replace />} />

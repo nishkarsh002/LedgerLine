@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { auth } from "../../firebase/firebase";
 import { Chrome, Loader2 } from 'lucide-react';
+import { FcGoogle } from "react-icons/fc";
+
 
 const GoogleLogin = ({ onAuthSuccess }) => {
   const [loading, setLoading] = useState(false);
@@ -45,7 +47,7 @@ const GoogleLogin = ({ onAuthSuccess }) => {
           <Loader2 className="w-5 h-5 animate-spin" />
         ) : (
           <>
-            <Chrome className="w-5 h-5 text-blue-600" />
+            <FcGoogle />
             Continue with Google
           </>
         )}

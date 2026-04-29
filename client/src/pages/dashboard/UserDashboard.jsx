@@ -4,7 +4,6 @@ import { User, ShoppingBag, LogOut, HelpCircle, ChevronRight, Mail, Phone, Edit2
 import Navbar from '../frontend/Navbar';
 import Footer from '../frontend/Footer';
 import { useAuth } from '../../context/AuthContext';
-import OrderDetails from './OrderDetails';
 import api from '../../api/axios';
 
 const UserDashboard = () => {
@@ -12,7 +11,6 @@ const UserDashboard = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'profile');
-  const [selectedOrder, setSelectedOrder] = useState(null);
   const [orders, setOrders] = useState([]);
   const [loadingOrders, setLoadingOrders] = useState(false);
 
@@ -202,7 +200,7 @@ const UserDashboard = () => {
                     </button>
                   )}
                   <button
-                    onClick={() => setSelectedOrder(order)}
+                    onClick={() => navigate(`/order/${order.id}`)}
                     className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-semibold text-sm"
                   >
                     View Details
@@ -337,14 +335,6 @@ const UserDashboard = () => {
       </main>
 
       <Footer />
-
-      {/* Order Details Modal */}
-      {selectedOrder && (
-        <OrderDetails
-          order={selectedOrder}
-          onClose={() => setSelectedOrder(null)}
-        />
-      )}
     </div>
   );
 };

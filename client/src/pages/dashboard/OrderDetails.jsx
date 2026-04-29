@@ -1,9 +1,19 @@
 import { useState, useEffect, useRef } from 'react';
-import { X, Eye, FileText, Upload, CheckCircle, Clock, AlertCircle, User, Activity, MessageSquare, Send, Paperclip, RefreshCw, ChevronDown } from 'lucide-react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { ArrowLeft, Eye, FileText, Upload, CheckCircle, Clock, AlertCircle, User, Activity, MessageSquare, Send, Paperclip, RefreshCw, ChevronDown, X } from 'lucide-react';
 import api from '../../api/axios';
 import { useAuth } from '../../context/AuthContext';
+import Navbar from '../frontend/Navbar';
+import Footer from '../frontend/Footer';
 
-const OrderDetails = ({ order, onClose }) => {
+const OrderDetails = () => {
+  const { orderId } = useParams();
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const isAdminOrCA = user?.role === 'admin' || user?.role === 'ca';
+
+  const [order, setOrder] = useState(null);
+  const [loadingOrder, setLoadingOrder] = useState(true);
   const [activeTab, setActiveTab] = useState('itr-details');
   const [selectedDocs, setSelectedDocs] = useState([]);
   const [showRequestModal, setShowRequestModal] = useState(false);
@@ -14,14 +24,12 @@ const OrderDetails = ({ order, onClose }) => {
   const [uploadingRequestId, setUploadingRequestId] = useState(null);
   const [syncCooldown, setSyncCooldown] = useState(0);
   const [updatingStatus, setUpdatingStatus] = useState(false);
-  const [selectedStatus, setSelectedStatus] = useState(order.status);
+  const [selectedStatus, setSelectedStatus] = useState('');
   const [statusChanged, setStatusChanged] = useState(false);
   const [statusRemarks, setStatusRemarks] = useState('');
   const [showStatusDropdown, setShowStatusDropdown] = useState(false);
   const statusDropdownRef = useRef(null);
   const fileInputRef = useRef(null);
-  const { user } = useAuth();
-  const isAdminOrCA = user?.role === 'admin' || user?.role === 'ca';
 
   // Handle sync cooldown timer
   useEffect(() => {
@@ -45,17 +53,46 @@ const OrderDetails = ({ order, onClose }) => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // Fetch the order from the API using orderId from URL
   useEffect(() => {
-    const fetchItrDetails = async () => {
-      // Set initial data from props if available for immediate responsiveness
-      if (order.originalData && order.originalData.personalInfo) {
-        setItrData(order.originalData);
+    const fetchOrder = async () => {
+      try {
+        setLoadingOrder(true);
+        const { data } = await api.get('/payments/my-orders');
+        if (data.success) {
+          const found = data.data.find(o => o._id === orderId);
+          if (found) {
+            setOrder({
+              id: found._id,
+              service: found.planId?.name || 'Tax Service',
+              date: found.createdAt,
+              status: found.itrStatus || 'Pending',
+              amount: found.planId?.price ? `₹${found.planId.price}` : 'Paid',
+              originalData: found,
+              itrId: found.itrId,
+            });
+            setSelectedStatus(found.itrStatus || 'Pending');
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching order:', error);
+      } finally {
+        setLoadingOrder(false);
       }
+    };
+    if (orderId) fetchOrder();
+  }, [orderId]);
 
-      // Always fetch fresh data to ensure we have the latest updates (e.g., requested docs)
-      const idToFetch = order.itrId || order.originalData?.itrId || order.originalData?._id || order.id;
-      if (!idToFetch) return;
-
+  useEffect(() => {
+    if (!order) return;
+    const fetchItrDetails = async () => {
+      // Only fetch if there's an actual ITR linked to this order
+      const idToFetch = order.itrId || order.originalData?.itrId;
+      if (!idToFetch) {
+        // No ITR filed yet — nothing to fetch
+        setLoadingItr(false);
+        return;
+      }
       try {
         setLoadingItr(true);
         const { data } = await api.get(`/itr/${idToFetch}`);
@@ -70,12 +107,11 @@ const OrderDetails = ({ order, onClose }) => {
         setLoadingItr(false);
       }
     };
-
     fetchItrDetails();
-  }, [order.id, order.itrId, order.originalData]);
+  }, [order]);
 
   const handleUpdateStatus = async () => {
-    const idToUpdate = itrData?._id || order.itrId || order.originalData?._id || order.id;
+    const idToUpdate = itrData?._id || order?.itrId || order?.originalData?.itrId;
     if (!idToUpdate) return;
 
     try {
@@ -199,13 +235,8 @@ const OrderDetails = ({ order, onClose }) => {
 
   const handleRefresh = async () => {
     if (syncCooldown > 0) return;
-
-    // Correctly resolve ID based on where the component is used (Admin vs User)
-    const idToFetch = itrData?._id || order.itrId || order.originalData?._id || order.id;
-    if (!idToFetch) {
-      console.warn('Could not find ITR ID to refresh');
-      return;
-    }
+    const idToFetch = itrData?._id || order?.itrId || order?.originalData?.itrId;
+    if (!idToFetch) return;
 
     try {
       setLoadingItr(true);
@@ -257,71 +288,103 @@ const OrderDetails = ({ order, onClose }) => {
     fileInputRef.current.click();
   };
 
-  return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-      <div className="bg-white rounded-3xl shadow-2xl max-w-3xl w-full max-h-[85vh] flex flex-col overflow-hidden transition-all duration-500 scale-100 animate-in fade-in zoom-in-95">
-        {/* Header - Balanced Compact */}
-        <div className="relative bg-[#2563eb] p-6 text-white flex-shrink-0 z-20">
-          <div className="absolute top-0 right-0 -mr-12 -mt-12 w-48 h-48 bg-white/5 rounded-full blur-3xl overflow-hidden pointer-events-none"></div>
+  if (loadingOrder) {
+    return (
+      <div className="flex flex-col min-h-screen bg-slate-50">
+        <Navbar />
+        <div className="flex-1 flex items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
 
-          <div className="relative flex items-center justify-between mb-6">
-            <div className="space-y-1">
-              <div className="flex items-center gap-2.5">
-                <h2 className="text-2xl font-bold tracking-tight">Order Insight</h2>
-                <span className="px-2.5 py-1 rounded-lg text-[10px] font-black bg-white/20 backdrop-blur-md border border-white/10 uppercase tracking-widest">
-                  #{order.id.slice(-6).toUpperCase()}
-                </span>
-              </div>
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                <p className="text-blue-50 text-[11px] flex items-center gap-1.5 opacity-80 font-medium">
-                  <Clock size={11} className="opacity-70" />
-                  Placed {formatDate(order.date)}
-                </p>
-                {itrData && itrData.updatedAt && (
-                  <div className="flex items-center gap-3">
-                    <div className="w-1 h-1 rounded-full bg-white/30 hidden sm:block"></div>
-                    <p className="text-blue-50 text-[11px] flex items-center gap-1.5 font-bold">
-                      <CheckCircle size={11} className="text-blue-200" />
-                      Status: {itrData.status} at {formatDate(itrData.updatedAt)}
-                    </p>
-                  </div>
-                )}
-              </div>
-            </div>
+  if (!order) {
+    return (
+      <div className="flex flex-col min-h-screen bg-slate-50">
+        <Navbar />
+        <div className="flex-1 flex flex-col items-center justify-center gap-4">
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-12 flex flex-col items-center gap-4">
+            <FileText className="w-16 h-16 text-slate-300" />
+            <p className="text-slate-600 font-medium text-lg">Order not found.</p>
             <button
-              onClick={onClose}
-              className="p-2 hover:bg-white/10 rounded-2xl transition-all group"
+              onClick={() => navigate('/dashboard?tab=orders')}
+              className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-2xl font-semibold hover:bg-blue-700 transition-all"
             >
-              <X size={20} className="group-hover:rotate-90 transition-transform duration-300" />
+              <ArrowLeft size={16} />
+              Back to Orders
+            </button>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col min-h-screen bg-slate-50 font-sans text-slate-900">
+      <Navbar />
+
+      {/* Hero Header */}
+      <section className="bg-blue-600 text-white py-14">
+        <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-16">
+          <div className="flex items-center gap-3 mb-6">
+            <button
+              onClick={() => navigate('/dashboard?tab=orders')}
+              className="flex items-center gap-2 text-blue-100 hover:text-white font-semibold transition-colors text-sm"
+            >
+              <ArrowLeft size={16} />
+              Back to Orders
             </button>
           </div>
 
-          <div className="relative grid grid-cols-3 gap-3">
-            <div className="bg-white/10 backdrop-blur-md rounded-xl p-3 border border-white/5">
-              <p className="text-blue-100 text-[9px] uppercase font-black opacity-70 mb-1 tracking-wider">Plan</p>
-              <p className="font-bold text-xs truncate">{order.service}</p>
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-6">
+            <div>
+              <div className="flex items-center gap-3 mb-2">
+                <h1 className="text-4xl font-extrabold tracking-tight">Order Details</h1>
+                <span className="px-3 py-1 rounded-full text-xs font-black bg-white/20 border border-white/20 uppercase tracking-widest">
+                  #{order.id.slice(-6).toUpperCase()}
+                </span>
+              </div>
+              <p className="text-blue-100 text-sm flex items-center gap-1.5">
+                <Clock size={13} className="opacity-80" />
+                Placed {formatDate(order.date)}
+              </p>
             </div>
-            <div className="bg-white/10 backdrop-blur-md rounded-xl p-3 border border-white/5">
-              <p className="text-blue-100 text-[9px] uppercase font-black opacity-70 mb-1 tracking-wider">Investment</p>
-              <p className="font-black text-base">{order.amount}</p>
+
+            {!isAdminOrCA && (
+              <div className="flex items-center gap-2 bg-white/15 border border-white/20 rounded-2xl px-4 py-2.5 self-start">
+                <div className={`w-2 h-2 rounded-full ${(itrData?.status || order.status)?.toLowerCase() === 'completed' ? 'bg-green-400' : 'bg-yellow-300'}`}></div>
+                <span className="font-bold text-sm capitalize">{(itrData?.status || order.status)?.replace('-', ' ')}</span>
+              </div>
+            )}
+          </div>
+
+          {/* Stats row */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mt-10">
+            <div className="bg-white/10 border border-white/10 rounded-2xl px-6 py-5">
+              <p className="text-blue-200 text-xs uppercase font-bold tracking-wider mb-2">Plan</p>
+              <p className="font-bold text-lg truncate">{order.service}</p>
             </div>
-            <div className="bg-white/10 backdrop-blur-md rounded-xl p-3 border border-white/5 flex flex-col justify-center">
-              <p className="text-blue-100 text-[9px] uppercase font-black opacity-70 mb-1 tracking-wider">Status</p>
+            <div className="bg-white/10 border border-white/10 rounded-2xl px-6 py-5">
+              <p className="text-blue-200 text-xs uppercase font-bold tracking-wider mb-2">Amount Paid</p>
+              <p className="font-extrabold text-2xl">{order.amount}</p>
+            </div>
+            <div className="bg-white/10 border border-white/10 rounded-2xl px-6 py-5">
+              <p className="text-blue-200 text-xs uppercase font-bold tracking-wider mb-2">Current Status</p>
               {isAdminOrCA ? (
-                <div className="flex flex-col gap-1.5">
+                <div className="flex flex-col gap-2">
                   <div className="relative" ref={statusDropdownRef}>
                     <div
                       onClick={() => setShowStatusDropdown(!showStatusDropdown)}
-                      className="flex items-center justify-between bg-white/10 border border-white/5 rounded-lg px-2.5 py-1.5 hover:bg-white/20 transition-all cursor-pointer group"
+                      className="flex items-center justify-between bg-white/15 border border-white/20 rounded-xl px-3 py-2 hover:bg-white/25 transition-all cursor-pointer"
                     >
-                      <span className="text-white text-[11px] font-bold uppercase tracking-wider">
-                        {selectedStatus}
-                      </span>
-                      <ChevronDown size={12} className={`text-white/60 transition-transform duration-300 ${showStatusDropdown ? 'rotate-180' : ''}`} />
+                      <span className="text-white text-sm font-bold uppercase tracking-wide">{selectedStatus}</span>
+                      <ChevronDown size={14} className={`text-white/70 transition-transform duration-300 ${showStatusDropdown ? 'rotate-180' : ''}`} />
                     </div>
-
                     {showStatusDropdown && (
-                      <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-xl shadow-2xl py-1 z-[100] animate-in fade-in zoom-in-95 duration-200 border border-slate-200 overflow-hidden">
+                      <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-xl shadow-2xl py-1 z-[100] border border-slate-200 overflow-hidden">
                         {['Pending', 'CA Reviewing', 'Filed', 'Completed', 'Rejected'].map((status) => (
                           <div
                             key={status}
@@ -330,345 +393,323 @@ const OrderDetails = ({ order, onClose }) => {
                               setStatusChanged(status !== (itrData?.status || order.status));
                               setShowStatusDropdown(false);
                             }}
-                            className={`px-3 py-2 text-[10px] font-bold uppercase tracking-wider cursor-pointer transition-colors flex items-center gap-2 ${selectedStatus === status
-                                ? 'bg-blue-50 text-blue-600'
-                                : 'text-slate-600 hover:bg-slate-50'
-                              }`}
+                            className={`px-4 py-2.5 text-xs font-bold uppercase tracking-wider cursor-pointer transition-colors flex items-center gap-2 ${selectedStatus === status ? 'bg-blue-50 text-blue-600' : 'text-slate-600 hover:bg-slate-50'}`}
                           >
-                            <div className={`w-1.5 h-1.5 rounded-full ${status === 'Completed' ? 'bg-green-500' :
-                                status === 'Rejected' ? 'bg-red-500' :
-                                  status === 'Pending' ? 'bg-amber-500' : 'bg-blue-500'
-                              }`}></div>
+                            <div className={`w-2 h-2 rounded-full ${status === 'Completed' ? 'bg-green-500' : status === 'Rejected' ? 'bg-red-500' : status === 'Pending' ? 'bg-amber-500' : 'bg-blue-500'}`}></div>
                             {status}
                           </div>
                         ))}
                       </div>
                     )}
                   </div>
-                  {itrData?.updatedAt && !statusChanged && (
-                    <p className="text-[9px] text-blue-100/50 font-medium italic mt-0.5">
-                      Last update: {formatDate(itrData.updatedAt)}
-                    </p>
-                  )}
                   {statusChanged && (
-                    <div className="flex flex-col gap-1.5 animate-in fade-in slide-in-from-top-1 duration-300 mt-1">
+                    <div className="flex flex-col gap-2 mt-1">
                       <textarea
                         value={statusRemarks}
                         onChange={(e) => setStatusRemarks(e.target.value)}
                         placeholder="Add remarks for user..."
-                        className="bg-white/10 border border-white/20 rounded-lg p-2 text-[10px] text-white placeholder:text-blue-100/40 focus:outline-none focus:ring-1 focus:ring-white/30 resize-none h-14"
+                        className="bg-white/15 border border-white/20 rounded-xl p-2.5 text-xs text-white placeholder:text-blue-200/50 focus:outline-none focus:ring-1 focus:ring-white/40 resize-none h-16"
                       />
                       <button
                         onClick={handleUpdateStatus}
                         disabled={updatingStatus}
-                        className="flex items-center justify-center gap-1.5 bg-emerald-500 hover:bg-emerald-600 disabled:bg-emerald-800 disabled:opacity-50 text-white px-2 py-2 rounded-lg text-[9px] font-black tracking-widest transition-all shadow-lg shadow-emerald-900/20"
+                        className="flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-white px-3 py-2 rounded-xl text-xs font-black tracking-widest transition-all"
                       >
-                        {updatingStatus ? (
-                          <Activity size={10} className="animate-spin" />
-                        ) : (
-                          <Send size={10} />
-                        )}
-                        UPDATE & SEND MAIL
+                        {updatingStatus ? <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div> : <Send size={11} />}
+                        UPDATE &amp; SEND MAIL
                       </button>
                     </div>
                   )}
+                  {itrData?.updatedAt && !statusChanged && (
+                    <p className="text-blue-200/60 text-xs italic">Last update: {formatDate(itrData.updatedAt)}</p>
+                  )}
                 </div>
               ) : (
-                 <div className="flex flex-col gap-0.5">
-                  <div className="flex items-center gap-1.5">
-                    <div className={`w-1.5 h-1.5 rounded-full ${(itrData?.status || order.status)?.toLowerCase() === 'completed' ? 'bg-green-400' : 'bg-yellow-400'
-                      }`}></div>
-                    <p className="font-bold capitalize text-xs">{(itrData?.status || order.status)?.replace('-', ' ')}</p>
-                  </div>
-                  {itrData?.updatedAt && (
-                    <p className="text-[9px] text-blue-200/60 font-medium ml-3 italic">
-                      {formatDate(itrData.updatedAt)}
-                    </p>
-                  )}
+                <div className="flex items-center gap-2">
+                  <div className={`w-2 h-2 rounded-full ${(itrData?.status || order.status)?.toLowerCase() === 'completed' ? 'bg-green-400' : 'bg-yellow-300'}`}></div>
+                  <span className="font-bold text-sm capitalize">{(itrData?.status || order.status)?.replace('-', ' ')}</span>
                 </div>
               )}
             </div>
           </div>
         </div>
+      </section>
 
-        {/* Tabs - Sleek */}
-        <div className="bg-slate-50 border-b border-slate-200 flex-shrink-0 px-6">
-          <div className="flex gap-8">
-            <button
-              onClick={() => setActiveTab('itr-details')}
-              className={`relative px-1 py-4 font-bold text-sm transition-all duration-300 ${activeTab === 'itr-details' ? 'text-blue-600' : 'text-slate-500 hover:text-slate-800'
-                }`}
-            >
-              Filled Form Details
-              {activeTab === 'itr-details' && (
-                <div className="absolute bottom-0 left-0 right-0 h-1 bg-[#2563eb] rounded-t-full"></div>
-              )}
-            </button>
-            <button
-              onClick={() => setActiveTab('ca-docs')}
-              className={`relative px-1 py-4 font-bold text-sm transition-all duration-300 ${activeTab === 'ca-docs' ? 'text-blue-600' : 'text-slate-500 hover:text-slate-800'
-                }`}
-            >
-              {isAdminOrCA ? 'Request Document from User' : 'Requested Documents by CA'}
-              {activeTab === 'ca-docs' && (
-                <div className="absolute bottom-0 left-0 right-0 h-1 bg-[#2563eb] rounded-t-full"></div>
-              )}
-            </button>
-            <button
-              onClick={() => setActiveTab('chat')}
-              className={`relative px-1 py-4 font-bold text-sm transition-all duration-300 ${activeTab === 'chat' ? 'text-blue-600' : 'text-slate-500 hover:text-slate-800'
-                }`}
-            >
-              Chat
-              {activeTab === 'chat' && (
-                <div className="absolute bottom-0 left-0 right-0 h-1 bg-[#2563eb] rounded-t-full"></div>
-              )}
-            </button>
-
-            {isAdminOrCA && (
+      {/* Main Content */}
+      <main className="flex-1 py-10">
+        <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-16">
+          {/* Tabs Card */}
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-100 mb-6 overflow-hidden">
+            <div className="flex items-center border-b border-slate-100 px-4 overflow-x-auto">
               <button
-                onClick={handleRefresh}
-                disabled={loadingItr || syncCooldown > 0}
-                className={`px-3 py-4 transition-all duration-300 flex items-center gap-1.5 ${loadingItr || syncCooldown > 0
-                    ? 'cursor-not-allowed opacity-50 text-slate-400'
-                    : 'cursor-pointer text-slate-500 hover:text-blue-600'
-                  }`}
-                title={syncCooldown > 0 ? `Please wait ${syncCooldown}s` : "Refresh Data"}
+                onClick={() => setActiveTab('itr-details')}
+                className={`relative px-6 py-5 font-bold text-sm whitespace-nowrap transition-all duration-200 ${activeTab === 'itr-details' ? 'text-blue-600' : 'text-slate-500 hover:text-slate-800'}`}
               >
-                <RefreshCw size={16} className={loadingItr ? 'animate-spin text-blue-600' : ''} />
-                <span className="text-[10px] font-black uppercase tracking-widest whitespace-nowrap">
-                  {syncCooldown > 0 ? `Wait ${syncCooldown}s` : 'Sync'}
-                </span>
+                Filled Form Details
+                {activeTab === 'itr-details' && (
+                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 rounded-t-full"></div>
+                )}
               </button>
-            )}
-          </div>
-        </div>
+              <button
+                onClick={() => setActiveTab('ca-docs')}
+                className={`relative px-6 py-5 font-bold text-sm whitespace-nowrap transition-all duration-200 ${activeTab === 'ca-docs' ? 'text-blue-600' : 'text-slate-500 hover:text-slate-800'}`}
+              >
+                {isAdminOrCA ? 'Request Document from User' : 'Requested Documents by CA'}
+                {activeTab === 'ca-docs' && (
+                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 rounded-t-full"></div>
+                )}
+              </button>
+              <button
+                onClick={() => setActiveTab('chat')}
+                className={`relative px-6 py-5 font-bold text-sm whitespace-nowrap transition-all duration-200 ${activeTab === 'chat' ? 'text-blue-600' : 'text-slate-500 hover:text-slate-800'}`}
+              >
+                Chat
+                {activeTab === 'chat' && (
+                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 rounded-t-full"></div>
+                )}
+              </button>
+              {isAdminOrCA && (
+                <button
+                  onClick={handleRefresh}
+                  disabled={loadingItr || syncCooldown > 0}
+                  className={`ml-auto px-4 py-4 flex items-center gap-1.5 text-sm font-bold transition-all duration-200 whitespace-nowrap ${loadingItr || syncCooldown > 0 ? 'cursor-not-allowed opacity-40 text-slate-400' : 'cursor-pointer text-slate-500 hover:text-blue-600'}`}
+                  title={syncCooldown > 0 ? `Please wait ${syncCooldown}s` : 'Refresh Data'}
+                >
+                  <RefreshCw size={15} className={loadingItr ? 'animate-spin text-blue-600' : ''} />
+                  <span className="text-xs uppercase tracking-widest">
+                    {syncCooldown > 0 ? `Wait ${syncCooldown}s` : 'Sync'}
+                  </span>
+                </button>
+              )}
+            </div>
 
-        {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto bg-white">
-          <div className="p-6 space-y-8">
+            {/* Tab Content */}
+            <div className="p-8">
 
-            {/* Documents List */}
-            {activeTab === 'itr-details' ? (
-              <div className="space-y-8 animate-in fade-in duration-500">
-                {loadingItr ? (
-                  <div className="text-center py-12">
-                    <Activity className="w-12 h-12 text-blue-600 animate-spin mx-auto mb-4" />
-                    <p className="text-slate-600">Fetching filled form details...</p>
-                  </div>
-                ) : itrData ? (
-                  <>
-                    <div>
-                      <h3 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
-                        <User className="text-blue-600" />
-                        Personal Information
-                      </h3>
-                      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {Object.entries(itrData.personalInfo || {}).map(([key, value]) => {
-                          if (typeof value === 'object') return null;
-                          const label = key
-                            .replace(/([A-Z])/g, ' $1')
-                            .replace(/^./, str => str.toUpperCase());
-
-                          return (
-                            <div key={key} className="group bg-slate-50 rounded-2xl p-4 border border-slate-100 hover:border-blue-200 hover:bg-white hover:shadow-md transition-all duration-300">
-                              <p className="text-[10px] text-blue-600 uppercase font-black mb-1.5 opacity-70 tracking-tight">{label}</p>
-                              <p className="font-bold text-slate-800 text-[13px] break-words line-clamp-2" title={value?.toString()}>{value?.toString() || '—'}</p>
-                            </div>
-                          )
-                        })}
-                      </div>
+              {/* ── Filled Form Details Tab ── */}
+              {activeTab === 'itr-details' && (
+                <div className="space-y-8 animate-in fade-in duration-300">
+                  {loadingItr ? (
+                    <div className="flex flex-col items-center justify-center py-16 gap-4">
+                      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                      <p className="text-slate-500 font-medium">Fetching filled form details...</p>
                     </div>
-
-                    {itrData.incomeDetails && Object.keys(itrData.incomeDetails).length > 0 && (
-                      <div className="pt-8 border-t border-slate-200">
-                        <h3 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
-                          <AlertCircle className="text-blue-600" />
-                          Income Details
+                  ) : itrData ? (
+                    <>
+                      <div>
+                        <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
+                          <div className="w-8 h-8 bg-blue-50 rounded-xl flex items-center justify-center">
+                            <User size={16} className="text-blue-600" />
+                          </div>
+                          Personal Information
                         </h3>
-                        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                          {Object.entries(itrData.incomeDetails).map(([key, value]) => {
+                        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                          {Object.entries(itrData.personalInfo || {}).map(([key, value]) => {
                             if (typeof value === 'object') return null;
-                            const label = key
-                              .replace(/([A-Z])/g, ' $1')
-                              .replace(/^./, str => str.toUpperCase());
-
+                            const label = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
                             return (
-                              <div key={key} className="bg-slate-50 rounded-xl p-4 border border-slate-100">
-                                <p className="text-xs text-slate-500 uppercase font-bold mb-1 tracking-wider">{label}</p>
-                                <p className="font-semibold text-slate-900">{value?.toString() || 'N/A'}</p>
+                              <div key={key} className="bg-slate-50 rounded-2xl p-5 border border-slate-100 hover:border-blue-200 hover:bg-white hover:shadow-sm transition-all duration-200">
+                                <p className="text-xs text-blue-600 uppercase font-bold mb-2 tracking-wide opacity-80">{label}</p>
+                                <p className="font-semibold text-slate-800 text-sm break-words line-clamp-2" title={value?.toString()}>{value?.toString() || '—'}</p>
                               </div>
-                            )
+                            );
                           })}
                         </div>
                       </div>
-                    )}
 
-                    {itrData.uploadedDocs && itrData.uploadedDocs.length > 0 && (
-                      <div className="pt-8 border-t border-slate-200">
-                        <h3 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
-                          <Upload className="text-blue-600" />
-                          Uploaded Documents
-                        </h3>
-                        <div className="grid md:grid-cols-2 gap-4">
-                          {itrData.uploadedDocs.map((doc, index) => (
-                            <div key={doc._id || index} className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-100">
-                              <div className="flex items-center gap-3">
-                                <div className="p-2 bg-blue-100 text-blue-600 rounded-lg">
-                                  <FileText size={20} />
+                      {itrData.incomeDetails && Object.keys(itrData.incomeDetails).length > 0 && (
+                        <div className="pt-6 border-t border-slate-100">
+                          <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
+                            <div className="w-8 h-8 bg-blue-50 rounded-xl flex items-center justify-center">
+                              <AlertCircle size={16} className="text-blue-600" />
+                            </div>
+                            Income Details
+                          </h3>
+                          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                            {Object.entries(itrData.incomeDetails).map(([key, value]) => {
+                              if (typeof value === 'object') return null;
+                              const label = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+                              return (
+                                <div key={key} className="bg-slate-50 rounded-2xl p-5 border border-slate-100 hover:border-blue-200 hover:bg-white hover:shadow-sm transition-all duration-200">
+                                  <p className="text-xs text-slate-500 uppercase font-bold mb-2 tracking-wide">{label}</p>
+                                  <p className="font-semibold text-slate-900 text-sm">{value?.toString() || 'N/A'}</p>
                                 </div>
-                                <div className="min-w-0">
-                                  <p className="text-sm font-bold text-slate-900 truncate max-w-[200px]">
-                                    {doc.fileName || 'Document'}
-                                  </p>
-                                  <p className="text-xs text-slate-500">
-                                    {formatDate(doc.uploadedAt || doc.createdAt)}
-                                  </p>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+
+                      {itrData.uploadedDocs && itrData.uploadedDocs.length > 0 && (
+                        <div className="pt-6 border-t border-slate-100">
+                          <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
+                            <div className="w-8 h-8 bg-blue-50 rounded-xl flex items-center justify-center">
+                              <Upload size={16} className="text-blue-600" />
+                            </div>
+                            Uploaded Documents
+                          </h3>
+                          <div className="grid sm:grid-cols-2 gap-4">
+                            {itrData.uploadedDocs.map((doc, index) => (
+                              <div key={doc._id || index} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100 hover:border-blue-200 hover:bg-white hover:shadow-sm transition-all duration-200">
+                                <div className="flex items-center gap-3 min-w-0">
+                                  <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                                    <FileText size={18} className="text-blue-600" />
+                                  </div>
+                                  <div className="min-w-0">
+                                    <p className="text-sm font-bold text-slate-900 truncate max-w-[180px]">{doc.fileName || 'Document'}</p>
+                                    <p className="text-xs text-slate-500">{formatDate(doc.uploadedAt || doc.createdAt)}</p>
+                                  </div>
                                 </div>
-                              </div>
-                              <div className="flex gap-2">
                                 <button
                                   onClick={() => handleViewDocument(doc)}
-                                  className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                  className="p-2 text-blue-600 hover:bg-blue-50 rounded-xl transition-colors flex-shrink-0"
                                   title="View"
                                 >
                                   <Eye size={18} />
                                 </button>
                               </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </>
-                ) : (
-                  <div className="text-center py-12 bg-slate-50 rounded-2xl border border-dashed border-slate-300">
-                    <FileText className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-                    <p className="text-slate-600 font-medium">No filled form data found for this order.</p>
-                  </div>
-                )}
-              </div>
-            ) : activeTab === 'ca-docs' ? (
-              <div className="space-y-6 animate-in fade-in duration-500">
-                {/* Admin/CA: Request Form Section */}
-                {isAdminOrCA && (
-                  <div className="bg-slate-50 rounded-2xl border border-slate-200 p-6">
-                    <h4 className="text-sm font-bold text-slate-900 mb-4 flex items-center gap-2">
-                      <Upload size={16} className="text-blue-600" />
-                      New Document Request
-                    </h4>
-                    <div className="space-y-4">
-                      <textarea
-                        rows={4}
-                        value={requestMessage}
-                        onChange={(e) => setRequestMessage(e.target.value)}
-                        placeholder="Type the list of documents you need from the user (e.g., 1. Form 16, 2. Bank Statements...)"
-                        className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm resize-none transition-all"
-                      ></textarea>
-                      <div className="flex justify-end">
-                        <button
-                          onClick={handleSendRequest}
-                          disabled={requesting || !requestMessage.trim()}
-                          className="px-8 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-sm shadow-md transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                        >
-                          {requesting ? <Activity size={14} className="animate-spin" /> : <Send size={14} />}
-                          Send Request to User
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* History/User Section */}
-                <div className="space-y-4">
-                  <h4 className="text-sm font-bold text-slate-900 px-2 flex items-center gap-2">
-                    <FileText size={16} className="text-blue-600" />
-                    {isAdminOrCA ? 'Request History' : 'Active Requests'}
-                  </h4>
-
-                  {itrData?.documentRequests && itrData.documentRequests.length > 0 ? (
-                    [...itrData.documentRequests].reverse().map((req, idx) => (
-                      <div key={req._id || idx} className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm hover:shadow-md transition-all group">
-                        <div className="flex justify-between items-start mb-3">
-                          <p className="text-xs font-black text-slate-400 uppercase tracking-widest">
-                            Requested {formatDate(req.requestedAt)}
-                          </p>
-                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase transition-colors ${req.status === 'Fulfilled' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
-                            }`}>
-                            {req.status}
-                          </span>
-                        </div>
-                        <p className="text-[13px] text-slate-700 font-medium mb-4 leading-relaxed whitespace-pre-wrap">
-                          {req.message}
-                        </p>
-
-                        {/* User: Upload Action */}
-                        {!isAdminOrCA && req.status !== 'Fulfilled' && (
-                          <button
-                            onClick={() => triggerUpload(req._id)}
-                            className="w-full py-2.5 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all border border-blue-200/50"
-                          >
-                            <Paperclip size={14} />
-                            Upload Requested Document
-                          </button>
-                        )}
-
-                        {/* Show Fulfillment Badge if completed */}
-                        {req.status === 'Fulfilled' && (
-                          <div className="flex items-center gap-2 text-emerald-600 bg-emerald-50/50 p-2 rounded-lg border border-emerald-100">
-                            <CheckCircle size={14} />
-                            <span className="text-[11px] font-bold">Document successfully submitted</span>
+                            ))}
                           </div>
-                        )}
-                      </div>
-                    ))
+                        </div>
+                      )}
+                    </>
                   ) : (
-                    <div className="text-center py-12 bg-slate-50 border border-dashed border-slate-200 rounded-2xl">
-                      <FileText className="w-12 h-12 text-slate-300 mx-auto mb-2" />
-                      <p className="text-slate-600 font-medium text-sm">No active requests found.</p>
+                    <div className="flex flex-col items-center justify-center py-16 gap-3 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+                      <FileText className="w-14 h-14 text-slate-300" />
+                      <p className="text-slate-500 font-medium">No filled form data found for this order.</p>
                     </div>
                   )}
                 </div>
-              </div>
-            ) : activeTab === 'chat' ? (
-              <div className="flex flex-col h-[400px] animate-in fade-in duration-500">
-                <div className="flex-1 bg-slate-50 rounded-2xl border border-slate-200 p-4 overflow-y-auto mb-4">
-                  <div className="flex flex-col items-center justify-center h-full opacity-40">
-                    <MessageSquare size={48} className="text-slate-400 mb-2" />
-                    <p className="text-sm font-bold uppercase tracking-widest text-slate-500">Chat with Client Coming Soon</p>
+              )}
+
+              {/* ── Requested Documents Tab ── */}
+              {activeTab === 'ca-docs' && (
+                <div className="space-y-6 animate-in fade-in duration-300">
+                  {isAdminOrCA && (
+                    <div className="bg-slate-50 rounded-2xl border border-slate-200 p-6">
+                      <h4 className="text-sm font-bold text-slate-900 mb-4 flex items-center gap-2">
+                        <div className="w-7 h-7 bg-blue-100 rounded-lg flex items-center justify-center">
+                          <Upload size={14} className="text-blue-600" />
+                        </div>
+                        New Document Request
+                      </h4>
+                      <div className="space-y-4">
+                        <textarea
+                          rows={4}
+                          value={requestMessage}
+                          onChange={(e) => setRequestMessage(e.target.value)}
+                          placeholder="Type the list of documents you need from the user (e.g., 1. Form 16, 2. Bank Statements...)"
+                          className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm resize-none transition-all"
+                        />
+                        <div className="flex justify-end">
+                          <button
+                            onClick={handleSendRequest}
+                            disabled={requesting || !requestMessage.trim()}
+                            className="px-8 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-sm shadow-sm transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                          >
+                            {requesting ? <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div> : <Send size={14} />}
+                            Send Request to User
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="space-y-4">
+                    <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                      <div className="w-7 h-7 bg-blue-100 rounded-lg flex items-center justify-center">
+                        <FileText size={14} className="text-blue-600" />
+                      </div>
+                      {isAdminOrCA ? 'Request History' : 'Active Requests'}
+                    </h4>
+
+                    {itrData?.documentRequests && itrData.documentRequests.length > 0 ? (
+                      [...itrData.documentRequests].reverse().map((req, idx) => (
+                        <div key={req._id || idx} className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm hover:shadow-md hover:border-blue-100 transition-all">
+                          <div className="flex justify-between items-center mb-3">
+                            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+                              Requested {formatDate(req.requestedAt)}
+                            </p>
+                            <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${req.status === 'Fulfilled' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
+                              {req.status}
+                            </span>
+                          </div>
+                          <p className="text-sm text-slate-700 font-medium mb-4 leading-relaxed whitespace-pre-wrap">{req.message}</p>
+
+                          {!isAdminOrCA && req.status !== 'Fulfilled' && (
+                            <button
+                              onClick={() => triggerUpload(req._id)}
+                              className="w-full py-2.5 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all border border-blue-200/60"
+                            >
+                              <Paperclip size={14} />
+                              Upload Requested Document
+                            </button>
+                          )}
+
+                          {req.status === 'Fulfilled' && (
+                            <div className="flex items-center gap-2 text-emerald-600 bg-emerald-50 p-3 rounded-xl border border-emerald-100">
+                              <CheckCircle size={14} />
+                              <span className="text-xs font-bold">Document successfully submitted</span>
+                            </div>
+                          )}
+                        </div>
+                      ))
+                    ) : (
+                      <div className="flex flex-col items-center justify-center py-14 gap-3 bg-slate-50 border border-dashed border-slate-200 rounded-2xl">
+                        <FileText className="w-12 h-12 text-slate-300" />
+                        <p className="text-slate-500 font-medium text-sm">No active requests found.</p>
+                      </div>
+                    )}
                   </div>
                 </div>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    placeholder="Type a message to the client..."
-                    className="flex-1 px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                    disabled
-                  />
-                  <button className="px-6 py-3 bg-blue-600 text-white rounded-xl font-bold text-sm opacity-50 cursor-not-allowed">
-                    Send
-                  </button>
+              )}
+
+              {/* ── Chat Tab ── */}
+              {activeTab === 'chat' && (
+                <div className="flex flex-col h-[420px] animate-in fade-in duration-300">
+                  <div className="flex-1 bg-slate-50 rounded-2xl border border-slate-100 p-4 overflow-y-auto mb-4 flex items-center justify-center">
+                    <div className="flex flex-col items-center gap-3 opacity-40">
+                      <MessageSquare size={48} className="text-slate-400" />
+                      <p className="text-sm font-bold uppercase tracking-widest text-slate-500">Chat with Client Coming Soon</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-3">
+                    <input
+                      type="text"
+                      placeholder="Type a message to the client..."
+                      className="flex-1 px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-white"
+                      disabled
+                    />
+                    <button className="px-6 py-3 bg-blue-600 text-white rounded-xl font-bold text-sm opacity-50 cursor-not-allowed">
+                      Send
+                    </button>
+                  </div>
                 </div>
-              </div>
-            ) : null}
+              )}
 
+            </div>
           </div>
-        </div>
 
-        {/* Footer - Balanced */}
-        <div className="border-t border-slate-200 p-6 bg-slate-50 flex-shrink-0">
-          <div className="flex justify-end">
+          {/* Footer Action Bar */}
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 flex items-center justify-between">
             <button
-              onClick={onClose}
-              className="px-10 py-3 bg-white border border-slate-300 text-slate-700 rounded-2xl font-bold text-sm hover:bg-slate-50 hover:border-slate-400 transition-all shadow-sm"
+              onClick={() => navigate('/dashboard?tab=orders')}
+              className="flex items-center gap-2 px-6 py-3 bg-slate-50 border border-slate-200 text-slate-700 rounded-2xl font-bold text-sm hover:bg-slate-100 hover:border-slate-300 transition-all"
             >
-              Close Insight
+              <ArrowLeft size={16} />
+              Back to Orders
             </button>
+            {itrData?.updatedAt && (
+              <p className="text-xs text-slate-400 hidden sm:block">
+                Last updated: {formatDate(itrData.updatedAt)}
+              </p>
+            )}
           </div>
-        </div>
-      </div>
 
-      {/* Hidden File Input for fulfilling requests */}
+        </div>
+      </main>
+
+      {/* Hidden File Input */}
       <input
         type="file"
         ref={fileInputRef}
@@ -684,17 +725,15 @@ const OrderDetails = ({ order, onClose }) => {
               <h3 className="text-xl font-bold text-slate-900">Request Document</h3>
               <button
                 onClick={() => setShowRequestModal(false)}
-                className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
+                className="p-2 hover:bg-slate-100 rounded-xl transition-colors"
               >
                 <X size={20} />
               </button>
             </div>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-2">
-                  Document Type
-                </label>
-                <select className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <label className="block text-sm font-semibold text-slate-700 mb-2">Document Type</label>
+                <select className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
                   <option value="">Select document type</option>
                   <option value="form16">Form 16</option>
                   <option value="form26as">Form 26AS</option>
@@ -703,19 +742,17 @@ const OrderDetails = ({ order, onClose }) => {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-2">
-                  Message to Client
-                </label>
+                <label className="block text-sm font-semibold text-slate-700 mb-2">Message to Client</label>
                 <textarea
                   rows={4}
-                  className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                  className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none text-sm"
                   placeholder="Please provide additional details..."
-                ></textarea>
+                />
               </div>
-              <div className="flex gap-3 pt-4">
+              <div className="flex gap-3 pt-2">
                 <button
                   onClick={() => setShowRequestModal(false)}
-                  className="flex-1 px-4 py-3 border border-slate-300 text-slate-700 rounded-xl font-semibold hover:bg-slate-50 transition-colors"
+                  className="flex-1 px-4 py-3 border border-slate-200 text-slate-700 rounded-xl font-semibold hover:bg-slate-50 transition-colors text-sm"
                 >
                   Cancel
                 </button>
@@ -724,7 +761,7 @@ const OrderDetails = ({ order, onClose }) => {
                     console.log('Document requested');
                     setShowRequestModal(false);
                   }}
-                  className="flex-1 px-4 py-3 bg-[#2563eb] text-white rounded-xl font-semibold hover:bg-blue-700 transition-all"
+                  className="flex-1 px-4 py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-all text-sm"
                 >
                   Send Request
                 </button>
@@ -733,6 +770,8 @@ const OrderDetails = ({ order, onClose }) => {
           </div>
         </div>
       )}
+
+      <Footer />
     </div>
   );
 };
